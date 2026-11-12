@@ -11,7 +11,7 @@ Legend: [x] built and tested · [ ] not started
 ## Stage 2 — Database and authentication (in progress)
 Legend here: [x] built and tested · [~] built, waiting on the live database to test end to end
 - [x] Schema migration: profiles, chip ledger, player statistics
-- [x] Row Level Security and column grants, 31 SQL security tests passing on local Postgres
+- [x] Row Level Security and column grants, 31 SQL checks passing on local Postgres
 - [x] One-time 10,000 chip grant inside the sign-up transaction (unique index prevents a second)
 - [x] Form validation, signed-out redirects, safe redirect handling (browser tested)
 - [~] Register, login, logout against the live project
