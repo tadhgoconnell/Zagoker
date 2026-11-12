@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Container } from "@/components/ui/container";
 import { Logo } from "@/components/ui/logo";
-import { mainNav, routes, siteConfig } from "@/config/site";
+import { mainNav, siteConfig } from "@/config/site";
 
 export function SiteFooter() {
   return (
@@ -25,12 +25,6 @@ export function SiteFooter() {
               {item.label}
             </Link>
           ))}
-          <Link href={routes.login} className="hover:text-cream">
-            Log in
-          </Link>
-          <Link href={routes.register} className="hover:text-cream">
-            Sign up
-          </Link>
         </nav>
       </Container>
       <div className="hairline-gold opacity-40" />

@@ -8,16 +8,15 @@ Legend: [x] built and tested · [ ] not started
 - [x] Design system (`/design`), landing page, navigation, 404, security headers
 - [x] Architecture and cost write-up (`docs/ARCHITECTURE.md`)
 
-## Stage 2 — Database and authentication (in progress)
-Legend here: [x] built and tested · [~] built, waiting on the live database to test end to end
-- [x] Schema migration: profiles, chip ledger, player statistics
-- [x] Row Level Security and column grants, 31 SQL checks passing on local Postgres
-- [x] One-time 10,000 chip grant inside the sign-up transaction (unique index prevents a second)
-- [x] Form validation, signed-out redirects, safe redirect handling (browser tested)
-- [~] Register, login, logout against the live project
-- [~] Password reset by email
-- [~] Profile page, avatar picker, chip history
-- [ ] You: run the migration SQL in Supabase and turn off "Confirm email"
+## Stage 2 — Database and authentication (awaiting approval)
+- [x] Schema migration: profiles, chip ledger, player statistics (applied to the live project)
+- [x] Row Level Security and column grants; 31 SQL checks pass on local Postgres
+- [x] One-time 10,000 chip grant inside the sign-up transaction
+- [x] Register, login, logout, session persistence, protected pages
+- [x] Profile page, 12 preset avatars, chip history
+- [x] 32 end-to-end checks pass against the live project in two independent browser sessions (`tests/e2e/auth.e2e.cjs`)
+- [x] Password reset: request form and link handling built and tested
+- [ ] Password reset: receiving the email and following the link has not been tested (needs a real inbox)
 
 ## Stage 3 — Poker engine
 - [ ] Deck, secure shuffle, dealing

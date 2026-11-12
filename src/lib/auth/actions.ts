@@ -41,6 +41,18 @@ function fieldErrorsOf(error: z.ZodError): Record<string, string> {
   return out;
 }
 
+/** Supabase could not be reached at all (network failure, project paused). */
+function isUnreachable(error: { status?: number; name?: string }) {
+  return (
+    error.name === "AuthRetryableFetchError" ||
+    !error.status ||
+    error.status >= 500
+  );
+}
+
+const UNREACHABLE =
+  "We could not reach the server. Please try again in a moment.";
+
 function isRateLimited(error: { status?: number; code?: string }) {
   return error.status === 429 || error.code?.includes("rate_limit");
 }
@@ -73,7 +85,7 @@ export async function registerAction(
     .select("id")
     .eq("username", username)
     .maybeSingle();
-  if (lookupError) return { error: GENERIC_ERROR, values };
+  if (lookupError) return { error: UNREACHABLE, values };
   if (taken) {
     return { fieldErrors: { username: "That username is taken." }, values };
   }
@@ -141,6 +153,9 @@ export async function loginAction(
   if (error) {
     if (isRateLimited(error)) {
       return { error: "Too many attempts. Please wait a minute and try again.", values };
+    }
+    if (error.code !== "invalid_credentials" && isUnreachable(error)) {
+      return { error: UNREACHABLE, values };
     }
     if (error.code === "email_not_confirmed") {
       return { error: "Confirm your email address first, then log in.", values };

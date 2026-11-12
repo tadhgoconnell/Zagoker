@@ -1,4 +1,4 @@
-# ZAGPOKER architecture
+# Zagoker architecture
 
 Virtual-chip-only multiplayer No-Limit Texas Hold'em. No real money anywhere.
 

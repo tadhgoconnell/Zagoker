@@ -1,4 +1,4 @@
-# ZAGPOKER
+# Zagoker
 
 Free online multiplayer No-Limit Texas Hold'em. Virtual chips only: no real
 money, deposits, withdrawals or prizes.
