@@ -2,23 +2,22 @@
 
 Legend: [x] built and tested · [ ] not started
 
-## Stage 1 — Architecture and project setup (awaiting approval)
-- [x] Inspect existing project (directory was empty)
-- [x] Next.js 16 (App Router) + TypeScript + Tailwind CSS 4
-- [x] Folder structure
+## Stage 1 — Architecture and project setup (done)
+- [x] Next.js 16 (App Router) + TypeScript + Tailwind CSS 4, folder structure
 - [x] Environment variable template and typed, server-only secret access
-- [x] Design system: tokens, Button, Panel, Badge, Chip, Logo, PlayingCard (`/design`)
-- [x] Landing page: hero, how it works, features, virtual-chips-only section
-- [x] Navigation: header, mobile menu, footer, 404
-- [x] Security response headers
+- [x] Design system (`/design`), landing page, navigation, 404, security headers
 - [x] Architecture and cost write-up (`docs/ARCHITECTURE.md`)
-- [x] Verified: typecheck, lint, production build, browser checks at 1440/820/390 px
 
-## Stage 2 — Database and authentication
-- [ ] Supabase project, schema migrations, RLS
-- [ ] Register, login, logout, password reset, usernames
-- [ ] Profiles and avatars
-- [ ] One-time 10,000 chip grant
+## Stage 2 — Database and authentication (in progress)
+Legend here: [x] built and tested · [~] built, waiting on the live database to test end to end
+- [x] Schema migration: profiles, chip ledger, player statistics
+- [x] Row Level Security and column grants, 31 SQL security tests passing on local Postgres
+- [x] One-time 10,000 chip grant inside the sign-up transaction (unique index prevents a second)
+- [x] Form validation, signed-out redirects, safe redirect handling (browser tested)
+- [~] Register, login, logout against the live project
+- [~] Password reset by email
+- [~] Profile page, avatar picker, chip history
+- [ ] You: run the migration SQL in Supabase and turn off "Confirm email"
 
 ## Stage 3 — Poker engine
 - [ ] Deck, secure shuffle, dealing
@@ -51,5 +50,4 @@ Legend: [x] built and tested · [ ] not started
 - [ ] Full test pass, permission audit, Vercel deployment guide
 
 ## Placeholder routes to replace
-`/login`, `/register` (stage 2) and `/lobby`, `/leaderboard` (stage 6) currently
-show an honest "arrives in stage N" notice with no fake controls.
+`/lobby` and `/leaderboard` (stage 6) currently show an honest "arrives in stage N" notice with no fake controls.

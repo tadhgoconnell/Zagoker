@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { MobileNav } from "@/components/layout/mobile-nav";
-import { ButtonLink } from "@/components/ui/button";
+import { Suspense } from "react";
+import { HeaderAuth, HeaderAuthFallback } from "@/components/layout/header-auth";
 import { Container } from "@/components/ui/container";
 import { Logo } from "@/components/ui/logo";
-import { mainNav, routes } from "@/config/site";
+import { mainNav } from "@/config/site";
 
 export function SiteHeader() {
   return (
@@ -23,16 +23,9 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-2 md:flex">
-          <ButtonLink href={routes.login} variant="ghost" size="sm">
-            Log in
-          </ButtonLink>
-          <ButtonLink href={routes.register} size="sm">
-            Sign up free
-          </ButtonLink>
-        </div>
-
-        <MobileNav />
+        <Suspense fallback={<HeaderAuthFallback />}>
+          <HeaderAuth />
+        </Suspense>
       </Container>
     </header>
   );

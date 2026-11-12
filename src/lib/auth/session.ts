@@ -1,0 +1,54 @@
+import "server-only";
+import { redirect } from "next/navigation";
+import { cache } from "react";
+import { isAvatarKey, defaultAvatar, type AvatarKey } from "@/config/avatars";
+import { routes } from "@/config/site";
+import { isSupabaseConfigured } from "@/lib/env";
+import { createClient } from "@/lib/supabase/server";
+
+export type CurrentUser = {
+  id: string;
+  email: string | null;
+  username: string;
+  avatar: AvatarKey;
+  chips: number;
+  createdAt: string;
+};
+
+/**
+ * The signed-in user with their profile, or null. The token is verified with
+ * Supabase on every request (never trusted from the cookie alone). Wrapped in
+ * React cache() so several components in one request share a single lookup.
+ */
+export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
+  if (!isSupabaseConfigured()) return null;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("username, avatar, chips, created_at")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (!profile) return null;
+
+  return {
+    id: user.id,
+    email: user.email ?? null,
+    username: profile.username,
+    avatar: isAvatarKey(profile.avatar) ? profile.avatar : defaultAvatar,
+    chips: Number(profile.chips),
+    createdAt: profile.created_at,
+  };
+});
+
+/** For pages that need a signed-in user. Redirects to /login otherwise. */
+export async function requireUser(nextPath: string): Promise<CurrentUser> {
+  const user = await getCurrentUser();
+  if (!user) redirect(`${routes.login}?next=${encodeURIComponent(nextPath)}`);
+  return user;
+}

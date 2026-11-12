@@ -24,6 +24,9 @@ export const routes = {
   home: "/",
   login: "/login",
   register: "/register",
+  forgotPassword: "/forgot-password",
+  resetPassword: "/reset-password",
+  profile: "/profile",
   lobby: "/lobby",
   leaderboard: "/leaderboard",
 } as const;
