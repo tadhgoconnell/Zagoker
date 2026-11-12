@@ -8,7 +8,7 @@ Legend: [x] built and tested · [ ] not started
 - [x] Design system (`/design`), landing page, navigation, 404, security headers
 - [x] Architecture and cost write-up (`docs/ARCHITECTURE.md`)
 
-## Stage 2 — Database and authentication (awaiting approval)
+## Stage 2 — Database and authentication (done)
 - [x] Schema migration: profiles, chip ledger, player statistics (applied to the live project)
 - [x] Row Level Security and column grants; 31 SQL checks pass on local Postgres
 - [x] One-time 10,000 chip grant inside the sign-up transaction
@@ -18,12 +18,14 @@ Legend: [x] built and tested · [ ] not started
 - [x] Password reset: request form and link handling built and tested
 - [ ] Password reset: receiving the email and following the link has not been tested (needs a real inbox)
 
-## Stage 3 — Poker engine
-- [ ] Deck, secure shuffle, dealing
-- [ ] Hand evaluator and comparison
-- [ ] Betting rounds, blinds, dealer rotation, turn order
-- [ ] Side pots and split pots
-- [ ] Automated tests
+## Stage 3 — Poker engine (awaiting approval)
+- [x] Deck, Fisher-Yates shuffle, server-only cryptographic random source
+- [x] Hand evaluator and comparison (cross-checked against a brute-force evaluator on 30,000 hands)
+- [x] Blinds, dealer rotation, turn order, heads-up rules
+- [x] Fold, check, call, bet, raise, all-in with minimum-raise and short all-in rules
+- [x] Side pots, split pots, odd-chip rule, uncalled-bet return
+- [x] Client-safe views that hide the deck and other players' cards
+- [x] 124 automated tests, including 5,000 random hands (`npm test`); see `docs/POKER_ENGINE.md`
 
 ## Stage 4 — Betting and virtual currency
 - [ ] Fold, check, call, bet, raise, all-in end to end

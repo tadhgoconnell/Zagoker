@@ -3,7 +3,7 @@
 Free online multiplayer No-Limit Texas Hold'em. Virtual chips only: no real
 money, deposits, withdrawals or prizes.
 
-Status: **Stage 1 of 8 complete** (project setup, design system, landing page).
+Status: **Stages 1 to 3 of 8 complete** (setup and design, accounts and chips, poker engine).
 See [docs/CHECKLIST.md](docs/CHECKLIST.md) and
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
@@ -23,7 +23,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Open http://localhost:3000. Stage 1 runs without any keys.
+Open http://localhost:3000. Fill in the Supabase values in `.env.local` first; see [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md).
 
 ## Scripts
 
@@ -34,3 +34,4 @@ Open http://localhost:3000. Stage 1 runs without any keys.
 | `npm run start` | Serve the production build |
 | `npm run lint` | ESLint |
 | `npm run typecheck` | TypeScript check |
+| `npm test` | Poker engine tests |
