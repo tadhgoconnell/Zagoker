@@ -2,8 +2,7 @@ import "server-only";
 
 /**
  * Server-only secrets. The `server-only` import makes the build fail if this
- * module is ever pulled into a client bundle, so the service-role key can
- * never reach the browser.
+ * module is ever pulled into a client bundle.
  */
 function required(name: string): string {
   const value = process.env[name];
@@ -16,8 +15,16 @@ function required(name: string): string {
 }
 
 export const serverEnv = {
-  /** Bypasses Row Level Security. Used only by the authoritative game server code. */
-  get supabaseServiceRoleKey() {
-    return required("SUPABASE_SERVICE_ROLE_KEY");
+  /**
+   * Proves to the database that a request comes from the game server. It
+   * unlocks only the game_* functions (deal, record an action, settle a
+   * hand). The database stores just its SHA-256 hash.
+   */
+  get gameServerKey() {
+    return required("GAME_SERVER_KEY");
   },
 };
+
+export function isGameServerConfigured(): boolean {
+  return Boolean(process.env.GAME_SERVER_KEY);
+}
