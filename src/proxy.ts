@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const protectedPrefixes = ["/profile", "/reset-password"];
+const protectedPrefixes = ["/profile", "/reset-password", "/lobby", "/table", "/join"];
 const guestOnly = ["/login", "/register", "/forgot-password"];
 
 /**
@@ -60,7 +60,7 @@ export async function proxy(request: NextRequest) {
     return redirectTo("/login", { next: pathname });
   }
   if (user && guestOnly.includes(pathname)) {
-    return redirectTo("/profile");
+    return redirectTo("/lobby");
   }
 
   return response;

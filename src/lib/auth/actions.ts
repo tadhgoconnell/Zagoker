@@ -164,7 +164,7 @@ export async function loginAction(
     return { error: "Incorrect email or password.", values };
   }
 
-  redirect(safeNextPath(formData.get("next"), routes.profile));
+  redirect(safeNextPath(formData.get("next"), routes.lobby));
 }
 
 export async function logoutAction(): Promise<void> {

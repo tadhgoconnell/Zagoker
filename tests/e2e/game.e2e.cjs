@@ -88,7 +88,8 @@ const BUY_IN = 2000;
   // --- Starting a hand ----------------------------------------------------------
   const outsider = await browser.newContext();
   check((await post(A, `${url}/action`, { version: 0, action: { type: "fold" } })).code === "no_hand", "cannot act when no hand is running");
-  const starts = await Promise.all([post(A, `${url}/start`), post(B, `${url}/start`), post(C, `${url}/start`)]);
+  check((await post(B, `${url}/start`)).code === "host_starts", "only the host can start the first hand at a private table");
+  const starts = await Promise.all([post(A, `${url}/start`), post(A, `${url}/start`), post(A, `${url}/start`)]);
   check(starts.filter((r) => r.status === 200).length === 1, "three simultaneous 'deal' requests start exactly one hand", starts.map((r) => r.status).join(","));
 
   const view = async (p) => (await get(p, url)).json;
@@ -113,6 +114,7 @@ const BUY_IN = 2000;
   check((await post(actor, `${url}/action`, { version: h.version, action: { type: "raise", amount: 250.5 } })).status === 400, "a fractional bet is rejected");
   check((await post(actor, `${url}/action`, { version: h.version, action: { type: "steal" } })).status === 400, "an unknown action is rejected");
   check((await post(actor, `${url}/action`, { version: h.version + 5, action: { type: "call" } })).code === "stale", "an action for the wrong hand version is rejected");
+  check((await post(waiting, `${url}/timeout`, { version: h.version })).code === "not_timed_out", "an opponent cannot be timed out before their time is up");
   check((await view(A)).hand.version === h.version, "none of the rejected requests changed the game");
 
   const burst = await Promise.all([1, 2, 3, 4].map(() => post(actor, `${url}/action`, { version: h.version, action: { type: "raise", amount: 300 } })));
@@ -134,6 +136,8 @@ const BUY_IN = 2000;
     throw new Error("hand did not finish");
   };
   let done = await playOut();
+  const early = await post(B, `${url}/start`);
+  check(early.code === "too_soon", "the next hand cannot be dealt before a short pause", early.code ?? early.status);
   check(done.result.endedBy === "showdown" && done.board.length === 5, "hand runs through flop, turn and river to a showdown");
   check(done.players.every((p) => p.holeCards?.length === 2), "hands are revealed at showdown");
   const potTotal = done.result.pots.reduce((s, p) => s + p.amount, 0);
@@ -144,8 +148,10 @@ const BUY_IN = 2000;
   const stats = (await sb.from("player_stats").select("hands_played, hands_won, user_id").in("user_id", after.seats.map((x) => x.user_id))).data;
   check(stats.length === 3 && stats.every((s) => s.hands_played === 1) && stats.some((s) => s.hands_won === 1), "player statistics are updated");
   check((await post(A, `${url}/action`, { version: done.version, action: { type: "check" } })).code === "no_hand", "no actions are accepted after the hand ends");
+  check((await post(A, `${url}/timeout`, { version: done.version })).code === "no_hand", "a timeout cannot be claimed when no hand is running");
 
   // --- Second hand: side pot via all-in, and leaving mid-hand ---------------------
+  await new Promise((r) => setTimeout(r, 3000));
   check((await post(B, `${url}/start`)).status === 200, "next hand is dealt");
   h = (await view(A)).hand;
   check(h.dealerSeat !== done.dealerSeat, "dealer button moved", `${done.dealerSeat} -> ${h.dealerSeat}`);

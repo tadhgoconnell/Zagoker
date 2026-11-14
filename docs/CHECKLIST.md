@@ -18,25 +18,28 @@ Legend: [x] built and tested · [ ] not started
 - [x] Password reset: request form and link handling built and tested
 - [ ] Password reset: receiving the email and following the link has not been tested (needs a real inbox)
 
-## Stage 3 — Poker engine (awaiting approval)
-- [x] Deck, Fisher-Yates shuffle, server-only cryptographic random source
-- [x] Hand evaluator and comparison (cross-checked against a brute-force evaluator on 30,000 hands)
-- [x] Blinds, dealer rotation, turn order, heads-up rules
-- [x] Fold, check, call, bet, raise, all-in with minimum-raise and short all-in rules
-- [x] Side pots, split pots, odd-chip rule, uncalled-bet return
-- [x] Client-safe views that hide the deck and other players' cards
-- [x] 124 automated tests, including 5,000 random hands (`npm test`); see `docs/POKER_ENGINE.md`
+## Stage 3 — Poker engine (done)
+- [x] Deck, shuffle, evaluator, betting rules, pots, client-safe views; 124 tests (`npm test`)
 
-## Stage 4 — Betting and virtual currency
-- [ ] Fold, check, call, bet, raise, all-in end to end
-- [ ] Atomic chip accounting and ledger
-- [ ] Abandoned-hand safety
+## Stage 4 — Betting and virtual currency (done)
+- [x] Tables, seats, buy-in and cash-out through the chip ledger
+- [x] Server-run dealing and betting (fold, check, call, bet, raise, all-in) with the engine
+- [x] Atomic settlement with a database-side chip conservation check
+- [x] Hidden cards in a private schema; game server key instead of the Supabase secret key
+- [x] Duplicate and stale requests rejected (hand version check in server and database)
+- [x] Abandoned hands cancelled with chips restored; leaving mid-hand handled
+- [x] 32 database integration tests (`npm run test:db`), 70 live API checks (`tests/e2e/game.e2e.cjs`)
 
-## Stage 5 — Real-time multiplayer
-- [ ] Public and private tables, room codes, invitation links
-- [ ] Live state sync, turn timers, reconnect
-- [ ] Duplicate-action and race protection
-- [ ] Multi-browser tests
+## Stage 5 — Real-time multiplayer (awaiting approval)
+- [x] Live updates through Supabase Realtime, with polling fallback and resync on reconnect
+- [x] Public and private tables, room codes, invitation links (`/join/CODE`)
+- [x] Lobby with live table list, create-table form, join by code
+- [x] Table screen: seats, cards, pot, bets, dealer and blind markers, action bar, hand log
+- [x] 30-second turn timer enforced by the server; timed-out players sit out until "I'm back"
+- [x] Automatic next hand; host starts the first hand at private tables
+- [x] Presence: disconnected players are marked
+- [x] Scheduled database maintenance (stale hands, long-absent players, idle tables)
+- [x] 38 live multi-browser checks through the UI (`tests/e2e/table.e2e.cjs`)
 
 ## Stage 6 — Lobby and social
 - [ ] Lobby, create/join table
@@ -51,4 +54,4 @@ Legend: [x] built and tested · [ ] not started
 - [ ] Full test pass, permission audit, Vercel deployment guide
 
 ## Placeholder routes to replace
-`/lobby` and `/leaderboard` (stage 6) currently show an honest "arrives in stage N" notice with no fake controls.
+`/leaderboard` (stage 6) currently shows an honest "arrives in stage N" notice with no fake controls.

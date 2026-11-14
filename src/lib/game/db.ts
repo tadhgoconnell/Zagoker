@@ -39,10 +39,16 @@ export type SeatRow = {
   seat_no: number;
   user_id: string;
   stack: number;
-  status: "active" | "leaving";
+  status: "active" | "sitting_out" | "leaving";
 };
 
 export type LoadedTable = {
+  /** Database clock at the time of loading. */
+  now?: string;
+  /** When the current player's turn runs out. */
+  turn_deadline?: string | null;
+  /** When the most recent hand finished, if no hand is running. */
+  last_hand_ended_at?: string | null;
   table: TableRow;
   seats: SeatRow[];
   hand: {
@@ -94,4 +100,8 @@ export async function saveHand(input: {
 
 export async function abortHand(handId: string): Promise<boolean> {
   return gameRpc<boolean>("game_abort_hand", { p_hand_id: handId });
+}
+
+export async function setSittingOut(tableId: string, userId: string): Promise<void> {
+  await gameRpc<null>("game_set_sitting_out", { p_table_id: tableId, p_user_id: userId });
 }

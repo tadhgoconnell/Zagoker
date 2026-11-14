@@ -515,6 +515,90 @@ describe.skipIf(!ADMIN_URL)("tables, hands and chip settlement (database)", () =
     });
   });
 
+  describe("timers, sitting out and maintenance", () => {
+    it("every seat change bumps the table's change feed", async () => {
+      await reset();
+      const t = await createTable("alice");
+      const rev = () => one<number>("select seats_rev from table_state where table_id=$1", [t.id]);
+      expect(await rev()).toBe(0);
+      await join("alice", t.id);
+      expect(await rev()).toBe(1);
+      await rpc("alice", "select leave_table($1)", [t.id]);
+      expect(await rev()).toBe(2);
+    });
+
+    it("a sitting-out player keeps their seat but cannot be dealt in until they return", async () => {
+      await reset();
+      const t = await createTable("alice");
+      for (const n of ["alice", "bob", "carol"]) await join(n, t.id);
+      await expect(rpc(null, "select game_set_sitting_out('wrong',$1,$2)", [t.id, users.carol])).rejects.toThrow(/forbidden/);
+      await server("select game_set_sitting_out($1,$2,$3)", [KEY, t.id, users.carol]);
+      expect(await one("select status from table_seats where user_id=$1", [users.carol])).toBe("sitting_out");
+      expect(await stackOf("carol")).toBe(2000);
+
+      const dealt = await start(t.id);
+      expect(dealt.state.players.map((p) => p.id).sort()).toEqual([users.alice, users.bob].sort());
+      await playOut(dealt.handId, dealt.state);
+
+      // The server cannot deal a sitting-out player in, even if it tried.
+      const forced = startHand({
+        smallBlind: 50, bigBlind: 100, dealerSeat: 0, randomInt: seededRandomInt(1),
+        players: (await load(t.id)).seats.map((s) => ({ seat: s.seat_no, id: s.user_id, stack: Number(s.stack) })),
+      });
+      await expect(server("select game_start_hand($1,$2,1,$3,$3)", [KEY, t.id, JSON.stringify(forced)])).rejects.toThrow(/seat_mismatch/);
+
+      await expect(rpc("bob", "select sit_in($1)", [t.id])).rejects.toThrow(/not_seated/); // bob is not sitting out
+      await rpc("carol", "select sit_in($1)", [t.id]);
+      expect((await start(t.id, 2)).state.players).toHaveLength(3);
+    });
+
+    it("the server is told the turn deadline and when the last hand ended", async () => {
+      await reset();
+      const t = await createTable("alice");
+      for (const n of ["alice", "bob"]) await join(n, t.id);
+      expect((await load(t.id) as unknown as { last_hand_ended_at: string | null }).last_hand_ended_at).toBeNull();
+      const { handId, state } = await start(t.id);
+      const deadline = new Date(Date.now() + 30_000).toISOString();
+      const next = applyAction(state, state.toActSeat!, { type: "call" });
+      await server("select game_commit($1,$2,$3,$4,$4,'[]',$5)", [KEY, handId, state.version, JSON.stringify(next), deadline]);
+      const mid = await load(t.id) as unknown as { turn_deadline: string; last_hand_ended_at: string | null; now: string };
+      expect(new Date(mid.turn_deadline).toISOString()).toBe(deadline);
+      expect(mid.last_hand_ended_at).toBeNull();
+      await playOut(handId, next);
+      const after = await load(t.id) as unknown as { last_hand_ended_at: string | null; now: string };
+      expect(after.last_hand_ended_at).not.toBeNull();
+      expect(Math.abs(new Date(after.now).getTime() - Date.now())).toBeLessThan(60_000);
+    });
+
+    it("maintenance cancels dead hands, removes long-absent players and closes idle tables", async () => {
+      await reset();
+      const t = await createTable("alice", { name: "Busy" });
+      const idle = await createTable("alice", { name: "Idle" });
+      for (const n of ["alice", "bob", "carol"]) await join(n, t.id);
+      await server("select game_set_sitting_out($1,$2,$3)", [KEY, t.id, users.carol]);
+      const { handId } = await start(t.id);
+
+      // Nothing is old enough yet.
+      expect(await one("select table_maintenance()")).toEqual({ aborted_hands: 0, removed_seats: 0, closed_tables: 0 });
+
+      await pool.query("update private.hands set updated_at = now() - interval '4 minutes' where id=$1", [handId]);
+      await pool.query("update table_seats set away_since = now() - interval '16 minutes' where user_id=$1", [users.carol]);
+      await pool.query("alter table poker_tables disable trigger poker_tables_touch_updated_at");
+      await pool.query("update poker_tables set updated_at = now() - interval '2 hours' where id=$1", [idle.id]);
+      await pool.query("alter table poker_tables enable trigger poker_tables_touch_updated_at");
+      await pool.query("update table_state set updated_at = now() - interval '2 hours' where table_id=$1", [idle.id]);
+
+      expect(await one("select table_maintenance()")).toEqual({ aborted_hands: 1, removed_seats: 1, closed_tables: 1 });
+      expect(await chipsOf("carol")).toBe(10000);
+      expect(await stackOf("carol")).toBeNull();
+      expect(await stackOf("alice")).toBe(2000);
+      expect(await one("select status from poker_tables where id=$1", [idle.id])).toBe("closed");
+      expect(await one("select status from poker_tables where id=$1", [t.id])).toBe("open");
+      expect(await totalChips()).toBe(40000);
+      await expect(rpc("alice", "select table_maintenance()")).rejects.toThrow(/permission denied/);
+    });
+  });
+
   describe("many random hands", () => {
     it("300 hands with joins and leaves never create or lose a chip", async () => {
       await reset();

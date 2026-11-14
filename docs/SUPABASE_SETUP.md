@@ -7,6 +7,8 @@ One-off steps in the Supabase dashboard for a new project.
 1. Open **SQL Editor** and choose **New query**.
 2. Paste the full contents of each file in `supabase/migrations/`, oldest first, and press **Run**.
    - `20261112000001_accounts_and_chips.sql`
+   - `20261113000001_tables_and_hands.sql`
+   - `20261114000001_realtime_and_timers.sql`
 
 Each migration is run once. If the Supabase CLI is linked to the project,
 `supabase db push` does the same thing.
@@ -28,7 +30,20 @@ Each migration is run once. If the Supabase CLI is linked to the project,
 | --- | --- | --- |
 | Project URL | `NEXT_PUBLIC_SUPABASE_URL` | No |
 | Publishable / anon key | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | No (Row Level Security protects the data) |
-| Secret / service_role key | `SUPABASE_SERVICE_ROLE_KEY` | **Yes.** Server only. Needed from the betting stage onwards. |
+| Secret / service_role key | Not used by this project | Keep it private; it is not needed |
+
+## 4. Game server key
+
+The game server proves itself to the database with its own key, which only
+unlocks dealing, recording actions and settling hands.
+
+```bash
+node scripts/generate-game-key.mjs production
+```
+
+It prints a `GAME_SERVER_KEY=...` line (secret: put it in `.env.local` and in
+Vercel) and one SQL statement containing only the key's hash (run it once in
+the SQL editor). To retire a key, delete its row from `private.server_keys`.
 
 ## Testing the database rules locally
 
@@ -38,3 +53,6 @@ Postgres database and runs the SQL security tests:
 ```bash
 DATABASE_URL=postgres://postgres@localhost:5432/zag_test supabase/tests/run-local.sh
 ```
+
+`npm run test:db` runs the tables/hands integration tests the same way
+(set `TEST_DATABASE_URL` to a local Postgres server).

@@ -45,6 +45,8 @@ export function GET(request: NextRequest, ctx: RouteContext<"/api/tables/[id]">)
       hand: mine ?? stateRow?.view ?? null,
       handNumber: stateRow?.hand_number ?? 0,
       turnDeadline: stateRow?.turn_deadline ?? null,
+      /** Server clock, so the browser can correct for its own clock being off. */
+      serverNow: new Date().toISOString(),
     };
   });
 }

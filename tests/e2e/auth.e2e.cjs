@@ -75,7 +75,7 @@ async function login(page, u, password = u.password) {
   await a2.goto(`${BASE}/profile`);
   check(a2.url().endsWith("/profile"), "session persists in a new tab");
   await a2.goto(`${BASE}/login`);
-  check(a2.url().endsWith("/profile"), "signed-in user is sent away from /login");
+  check(a2.url().endsWith("/lobby"), "signed-in user is sent away from /login");
   await a2.close();
 
   // --- Second, independent user on a phone-sized screen ----------------------

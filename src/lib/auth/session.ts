@@ -1,5 +1,6 @@
 import "server-only";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { cache } from "react";
 import { isAvatarKey, defaultAvatar, type AvatarKey } from "@/config/avatars";
 import { routes } from "@/config/site";
@@ -22,6 +23,10 @@ export type CurrentUser = {
  */
 export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   if (!isSupabaseConfigured()) return null;
+
+  // Checking a session depends on the current time (token expiry), so it can
+  // only happen for a real incoming request, never while prerendering.
+  await connection();
 
   const supabase = await createClient();
   const {

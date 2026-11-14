@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Playfair_Display } from "next/font/google";
-import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { siteConfig } from "@/config/site";
 import "./globals.css";
@@ -57,7 +56,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <main id="main" className="flex flex-1 flex-col">
           {children}
         </main>
-        <SiteFooter />
       </body>
     </html>
   );

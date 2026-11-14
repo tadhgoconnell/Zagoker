@@ -11,13 +11,21 @@ import {
   type PlayerAction,
 } from "@/lib/poker";
 import { secureRandomInt } from "@/lib/poker/secure-random";
-import { abortHand, loadTable, saveHand, saveNewHand, type LoadedTable } from "./db";
+import {
+  abortHand,
+  loadTable,
+  saveHand,
+  saveNewHand,
+  setSittingOut,
+  type LoadedTable,
+} from "./db";
 import { GameError } from "./errors";
+import { PAUSE_AFTER_FOLD_MS, TURN_SECONDS } from "./timing";
 
-/** Seconds a player has to act. Enforced by the turn timer (stage 5). */
-export const TURN_SECONDS = 30;
 /** A hand nobody has touched for this long is cancelled and chips restored. */
-const ABANDONED_AFTER_MS = 10 * 60 * 1000;
+const ABANDONED_AFTER_MS = 3 * 60 * 1000;
+/** Allowance for clock differences before a timeout is accepted. */
+const TIMEOUT_GRACE_MS = 500;
 
 const deadlineFor = (state: HandState) =>
   state.result ? null : new Date(Date.now() + TURN_SECONDS * 1000).toISOString();
@@ -34,15 +42,18 @@ async function mustLoad(tableId: string): Promise<LoadedTable> {
 }
 
 /**
- * Players who have left the table but are still in the hand act
- * automatically: check when free, otherwise fold.
+ * Players who are still in the hand but are no longer playing (they left the
+ * table, or their timer ran out and they are sitting out) act automatically:
+ * check when free, otherwise fold. `alsoAway` adds seats that became absent
+ * during this very request.
  */
-function autoActForLeavers(state: HandState, data: LoadedTable): HandState {
-  const leaving = new Set(
-    data.seats.filter((s) => s.status === "leaving").map((s) => s.seat_no),
-  );
+function autoActForAbsent(state: HandState, data: LoadedTable, alsoAway: number[] = []): HandState {
+  const absent = new Set([
+    ...data.seats.filter((s) => s.status !== "active").map((s) => s.seat_no),
+    ...alsoAway,
+  ]);
   let s = state;
-  while (s.toActSeat !== null && leaving.has(s.toActSeat)) {
+  while (s.toActSeat !== null && absent.has(s.toActSeat)) {
     s = applyAction(s, s.toActSeat, getTimeoutAction(s, s.toActSeat));
   }
   return s;
@@ -57,7 +68,26 @@ async function abortIfAbandoned(data: LoadedTable): Promise<boolean> {
   return true;
 }
 
-/** Shuffles, deals and stores a new hand. Any seated player may start it. */
+async function save(data: LoadedTable, next: HandState): Promise<void> {
+  const hand = data.hand!;
+  await saveHand({
+    handId: hand.id,
+    expectedVersion: hand.version,
+    state: next,
+    view: publicView(next),
+    newActions: next.actions.slice(hand.state.actions.length),
+    deadline: deadlineFor(next),
+  });
+}
+
+/**
+ * Shuffles, deals and stores a new hand.
+ *
+ * The first hand at a private table is started by its host. After that, and
+ * at public tables, any seated player's browser may ask for the next deal;
+ * the server enforces a short pause so everyone sees the previous result,
+ * and the database guarantees only one request wins.
+ */
 export async function startHandAtTable(tableId: string, userId: string): Promise<void> {
   let data = await mustLoad(tableId);
   if (await abortIfAbandoned(data)) data = await mustLoad(tableId);
@@ -67,6 +97,15 @@ export async function startHandAtTable(tableId: string, userId: string): Promise
   }
   if (data.hand) {
     throw new GameError("hand_in_progress", 409, "A hand is already being played.");
+  }
+  if (data.table.hand_number === 0 && data.table.is_private && data.table.owner_id !== userId) {
+    throw new GameError("host_starts", 403, "Waiting for the host to start the game.");
+  }
+  if (data.last_hand_ended_at && data.now) {
+    const since = new Date(data.now).getTime() - new Date(data.last_hand_ended_at).getTime();
+    if (since < PAUSE_AFTER_FOLD_MS) {
+      throw new GameError("too_soon", 409, "The next hand starts in a moment.");
+    }
   }
 
   const players = data.seats
@@ -123,43 +162,55 @@ export async function playerAction(
   let next: HandState;
   try {
     next = applyAction(hand.state, me.seat, action);
-    next = autoActForLeavers(next, data);
+    next = autoActForAbsent(next, data);
   } catch (e) {
     if (e instanceof PokerError) throw new GameError(e.code, 400, e.message);
     throw e;
   }
+  await save(data, next);
+}
 
-  await saveHand({
-    handId: hand.id,
-    expectedVersion: hand.version,
-    state: next,
-    view: publicView(next),
-    newActions: next.actions.slice(hand.state.actions.length),
-    deadline: deadlineFor(next),
-  });
+/**
+ * Enforces the turn timer. Any connected browser may report that the
+ * deadline has passed; the server checks the stored deadline itself, so a
+ * client cannot time an opponent out early. The player is checked or folded
+ * and marked as sitting out until they come back.
+ */
+export async function timeoutTurn(tableId: string, clientVersion: number): Promise<void> {
+  const data = await mustLoad(tableId);
+  const hand = data.hand;
+  if (!hand || hand.state.toActSeat === null) {
+    throw new GameError("no_hand", 409, "There is no hand in progress.");
+  }
+  if (hand.version !== clientVersion) {
+    throw new GameError("stale", 409, "The game has moved on. Refreshing.");
+  }
+  if (!data.turn_deadline || Date.now() + TIMEOUT_GRACE_MS < new Date(data.turn_deadline).getTime()) {
+    throw new GameError("not_timed_out", 409, "That player still has time.");
+  }
+
+  const seat = hand.state.toActSeat;
+  const player = hand.state.players.find((p) => p.seat === seat)!;
+  let next = applyAction(hand.state, seat, getTimeoutAction(hand.state, seat));
+  next = autoActForAbsent(next, data, [seat]);
+  await save(data, next);
+  await setSittingOut(tableId, player.id);
 }
 
 /**
  * Called after a player leaves: if it is (or becomes) their turn, act for
  * them so the table is not left waiting.
  */
-export async function resolveLeavers(tableId: string): Promise<void> {
+export async function resolveAbsent(tableId: string): Promise<void> {
   const data = await loadTable(tableId);
   const hand = data?.hand;
   if (!data || !hand) return;
-  const next = autoActForLeavers(hand.state, data);
+  const next = autoActForAbsent(hand.state, data);
   if (next.version === hand.version) return;
   try {
-    await saveHand({
-      handId: hand.id,
-      expectedVersion: hand.version,
-      state: next,
-      view: publicView(next),
-      newActions: next.actions.slice(hand.state.actions.length),
-      deadline: deadlineFor(next),
-    });
+    await save(data, next);
   } catch (e) {
-    // Someone else acted in the meantime; their request handles the leaver.
+    // Someone else acted in the meantime; their request handles the absentee.
     if (!(e instanceof GameError && e.code === "stale")) throw e;
   }
 }
@@ -178,3 +229,4 @@ export async function personalHandView(
   if (!data?.hand || !me) return null;
   return toPlayerView(data.hand.state, me.seat);
 }
+

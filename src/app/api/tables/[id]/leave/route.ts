@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { api, tableIdFrom, unwrap } from "@/lib/api/http";
-import { resolveLeavers } from "@/lib/game/service";
+import { resolveAbsent } from "@/lib/game/service";
 
 /**
  * Stand up. Between hands the stack is paid back at once. During a hand the
@@ -10,7 +10,7 @@ export function POST(request: NextRequest, ctx: RouteContext<"/api/tables/[id]/l
   return api(request, async ({ supabase }) => {
     const tableId = tableIdFrom((await ctx.params).id);
     const result = unwrap(await supabase.rpc("leave_table", { p_table_id: tableId }));
-    if (result === "leaving") await resolveLeavers(tableId);
+    if (result === "leaving") await resolveAbsent(tableId);
     return { result };
   });
 }

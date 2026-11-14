@@ -34,7 +34,8 @@ persistent connection is not held by Vercel at all:
 
 - The deck is shuffled on the server with `crypto` secure randomness.
 - The deck and all hole cards live in tables that clients have **no** RLS
-  access to. Only server code using the service-role key can read them.
+  access to. Only the game server, which holds a dedicated game server key, can
+  read them through a small set of database functions.
 - Public table state (seats, stacks, bets, board, pot, whose turn) is what gets
   broadcast. A player's own hole cards are returned only to that player.
 - Clients never send balances or outcomes, only intents (fold/call/raise N).
@@ -47,8 +48,10 @@ Every turn stores a `deadline` timestamp in the database. When it passes, any
 connected client at the table calls a `timeout` endpoint; the server checks the
 deadline itself and applies check/fold. Because the server validates the
 deadline, a client cannot trigger it early, and duplicate calls are harmless.
-A scheduled database job (`pg_cron`, included with Supabase) sweeps tables where
-nobody is connected, so abandoned hands are always settled and chips returned.
+The player is then marked as sitting out until they return. A scheduled
+database job (`pg_cron`, included with Supabase) runs every minute and cancels
+hands nobody has touched for three minutes, returning everyone's chips, so a
+table where every browser has closed never stays stuck.
 
 ### Alternative considered
 
