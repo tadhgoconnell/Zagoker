@@ -149,7 +149,8 @@ const BUY_IN = 2000;
   check((await post(B, `${url}/start`)).status === 200, "next hand is dealt");
   h = (await view(A)).hand;
   check(h.dealerSeat !== done.dealerSeat, "dealer button moved", `${done.dealerSeat} -> ${h.dealerSeat}`);
-  const leaver = players.find((_, seat) => seat !== h.toActSeat);
+  // A guest who is not about to act (the host can always see their own table).
+  const leaver = players.find((p, seat) => seat !== h.toActSeat && p !== A);
   const leave = await post(leaver, `${url}/leave`);
   check(leave.json?.result === "leaving", "leaving mid-hand marks the player as leaving");
   check((await chipsOf(leaver)) === 10000 - BUY_IN, "a leaving player is not paid until the hand ends");
