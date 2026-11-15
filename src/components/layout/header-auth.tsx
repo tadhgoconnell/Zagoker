@@ -20,8 +20,8 @@ export async function HeaderAuth() {
           <ButtonLink href={routes.login} variant="ghost" size="sm">
             Log in
           </ButtonLink>
-          <ButtonLink href={routes.register} size="sm">
-            Sign up free
+          <ButtonLink href={routes.play} size="sm">
+            Play now
           </ButtonLink>
         </div>
         <MobileNav user={null} />
@@ -47,6 +47,12 @@ export async function HeaderAuth() {
           <Avatar avatar={user.avatar} size="sm" className="size-7" />
           {user.username}
         </Link>
+        {user.isGuest ? (
+          // Logging out would abandon a guest's chips, so offer saving instead.
+          <ButtonLink href={routes.profile} variant="secondary" size="sm">
+            Save account
+          </ButtonLink>
+        ) : (
         <form action={logoutAction}>
           <button
             type="submit"
@@ -57,9 +63,10 @@ export async function HeaderAuth() {
             <LogOut className="size-4" />
           </button>
         </form>
+        )}
       </div>
       <MobileNav
-        user={{ username: user.username, avatar: user.avatar, chips: user.chips }}
+        user={{ username: user.username, avatar: user.avatar, chips: user.chips, isGuest: user.isGuest }}
       />
     </>
   );

@@ -49,6 +49,12 @@ Legend: [x] built and tested · [ ] not started
 - [x] Daily bonus: 1,000 chips every 24 hours, duplicate-proof
 - [x] 36 database tests, 36 live checks (`tests/e2e/social.e2e.cjs`)
 
+## Guest play (added after stage 6 at the owner's request)
+- [x] `/play`: pick a name and play, no email or password
+- [x] Guests can optionally save their account later with an email and password
+- [x] Tested: entry page, name validation, redirects, clear message when guest sign-in is disabled
+- [ ] Live guest flow (enter, play, save account, log back in): needs "Allow anonymous sign-ins" enabled in Supabase
+
 ## Stage 7 — Design and UX polish
 - [ ] Animations, loading/error/empty states, responsive table
 

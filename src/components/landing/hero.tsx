@@ -39,7 +39,7 @@ export function Hero() {
           className="mt-9 flex w-full animate-fade-up flex-col items-center gap-3 sm:w-auto sm:flex-row"
           style={{ animationDelay: "240ms" }}
         >
-          <ButtonLink href={routes.register} size="lg" className="w-full sm:w-auto">
+          <ButtonLink href={routes.play} size="lg" className="w-full sm:w-auto">
             Play now
           </ButtonLink>
           <ButtonLink
@@ -57,7 +57,7 @@ export function Hero() {
           style={{ animationDelay: "320ms" }}
         >
           <Chip className="size-4" />
-          {formatChips(gameConfig.startingChips)} free chips when you sign up
+          {formatChips(gameConfig.startingChips)} free chips to start. No account needed
         </p>
       </Container>
 

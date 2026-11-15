@@ -7,10 +7,12 @@ import { isAvatarKey } from "@/config/avatars";
 import { routes } from "@/config/site";
 import {
   forgotPasswordSchema,
+  guestSchema,
   loginSchema,
   registerSchema,
   resetPasswordSchema,
   safeNextPath,
+  saveAccountSchema,
 } from "@/lib/auth/schemas";
 import { isSupabaseConfigured, publicEnv } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
@@ -128,6 +130,91 @@ export async function registerAction(
     message:
       "Almost there. Check your email for a confirmation link, then log in.",
   };
+}
+
+/**
+ * Guest entry: creates an anonymous Supabase user with just a display name.
+ * The same database trigger as a normal sign-up creates the profile and
+ * grants the starting chips, so guests and accounts are treated identically
+ * by the game. The session lives in this browser's cookie.
+ */
+export async function guestAction(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  if (!isSupabaseConfigured()) return NOT_CONFIGURED;
+
+  const raw = { username: String(formData.get("username") ?? "") };
+  const parsed = guestSchema.safeParse(raw);
+  if (!parsed.success) return { fieldErrors: fieldErrorsOf(parsed.error), values: raw };
+  const { username } = parsed.data;
+
+  const supabase = await createClient();
+  const { data: taken, error: lookupError } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("username", username)
+    .maybeSingle();
+  if (lookupError) return { error: UNREACHABLE, values: raw };
+  if (taken) return { fieldErrors: { username: "That name is taken. Try another." }, values: raw };
+
+  const { data, error } = await supabase.auth.signInAnonymously({ options: { data: { username } } });
+  if (error || !data.session) {
+    if (error && isRateLimited(error)) {
+      return { error: "Too many new players from this connection. Please wait a few minutes.", values: raw };
+    }
+    if (error?.code === "anonymous_provider_disabled") {
+      return { error: "Guest play is switched off on the server. Create an account instead.", values: raw };
+    }
+    if (error?.message.toLowerCase().includes("database error")) {
+      return { fieldErrors: { username: "That name is taken. Try another." }, values: raw };
+    }
+    return { error: error && isUnreachable(error) ? UNREACHABLE : GENERIC_ERROR, values: raw };
+  }
+
+  redirect(safeNextPath(formData.get("next"), routes.lobby));
+}
+
+/**
+ * Turns a guest into a permanent account by attaching an email and password.
+ * Username, chips and statistics are kept: it is the same user.
+ */
+export async function saveAccountAction(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  if (!isSupabaseConfigured()) return NOT_CONFIGURED;
+
+  const raw = {
+    email: String(formData.get("email") ?? ""),
+    password: String(formData.get("password") ?? ""),
+  };
+  const values = { email: raw.email };
+  const parsed = saveAccountSchema.safeParse(raw);
+  if (!parsed.success) return { fieldErrors: fieldErrorsOf(parsed.error), values };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect(routes.play);
+  if (!user.is_anonymous) return { error: "This account is already saved." };
+
+  const { error } = await supabase.auth.updateUser(parsed.data);
+  if (error) {
+    if (error.code === "email_exists" || error.code === "user_already_exists") {
+      return { fieldErrors: { email: "An account with this email already exists." }, values };
+    }
+    if (error.code === "weak_password") {
+      return { fieldErrors: { password: "Choose a stronger password." }, values };
+    }
+    if (isRateLimited(error)) {
+      return { error: "Too many attempts. Please wait a minute and try again.", values };
+    }
+    return { error: GENERIC_ERROR, values };
+  }
+
+  redirect(`${routes.profile}?saved=1`);
 }
 
 export async function loginAction(

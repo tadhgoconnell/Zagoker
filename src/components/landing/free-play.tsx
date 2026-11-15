@@ -30,8 +30,8 @@ export function FreePlay() {
                 no monetary value and cannot be exchanged for anything. There is
                 no way to spend real money here.
               </p>
-              <ButtonLink href={routes.register} size="lg" className="mt-8">
-                Create a free account
+              <ButtonLink href={routes.play} size="lg" className="mt-8">
+                Play now
               </ButtonLink>
             </div>
 
@@ -47,7 +47,7 @@ export function FreePlay() {
               ))}
               <li className="flex items-center gap-3 rounded-xl border border-felt-400/30 bg-felt-700/20 px-4 py-3.5 text-sm sm:col-span-2">
                 <Check className="size-4 shrink-0 text-success" />
-                Free virtual chips at sign-up and every day
+                Free virtual chips to start and every day
               </li>
             </ul>
           </div>

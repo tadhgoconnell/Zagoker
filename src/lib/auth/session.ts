@@ -10,6 +10,8 @@ import { createClient } from "@/lib/supabase/server";
 export type CurrentUser = {
   id: string;
   email: string | null;
+  /** True for a guest who has not saved their account with an email and password. */
+  isGuest: boolean;
   username: string;
   avatar: AvatarKey;
   chips: number;
@@ -44,6 +46,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   return {
     id: user.id,
     email: user.email ?? null,
+    isGuest: user.is_anonymous === true,
     username: profile.username,
     avatar: isAvatarKey(profile.avatar) ? profile.avatar : defaultAvatar,
     chips: Number(profile.chips),
@@ -51,9 +54,9 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   };
 });
 
-/** For pages that need a signed-in user. Redirects to /login otherwise. */
+/** For pages that need a player. Sends visitors to the guest entry page otherwise. */
 export async function requireUser(nextPath: string): Promise<CurrentUser> {
   const user = await getCurrentUser();
-  if (!user) redirect(`${routes.login}?next=${encodeURIComponent(nextPath)}`);
+  if (!user) redirect(`${routes.play}?next=${encodeURIComponent(nextPath)}`);
   return user;
 }

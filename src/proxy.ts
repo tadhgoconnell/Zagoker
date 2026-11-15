@@ -2,12 +2,12 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 const protectedPrefixes = ["/profile", "/reset-password", "/lobby", "/table", "/join"];
-const guestOnly = ["/login", "/register", "/forgot-password"];
+const signedOutOnly = ["/play", "/login", "/register", "/forgot-password"];
 
 /**
  * Runs before every page request. Refreshes the Supabase session cookie so it
  * never expires mid-visit, and does coarse routing: signed-out visitors are
- * sent to /login for protected pages, signed-in users skip the auth pages.
+ * sent to /play for protected pages, signed-in users skip the auth pages.
  * This is a convenience layer only. Every page and action re-checks the user.
  */
 export async function proxy(request: NextRequest) {
@@ -57,9 +57,12 @@ export async function proxy(request: NextRequest) {
   };
 
   if (!user && protectedPrefixes.some((p) => pathname.startsWith(p))) {
-    return redirectTo("/login", { next: pathname });
+    // Visitors pick a name and play; an account is optional.
+    return redirectTo("/play", { next: pathname });
   }
-  if (user && guestOnly.includes(pathname)) {
+  // A guest may still open /login or /register to switch to a real account.
+  const isGuest = user?.is_anonymous === true;
+  if (user && signedOutOnly.includes(pathname) && !(isGuest && pathname !== "/play")) {
     return redirectTo("/lobby");
   }
 

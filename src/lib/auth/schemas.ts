@@ -26,6 +26,10 @@ export const registerSchema = z.object({
   password: passwordSchema,
 });
 
+export const guestSchema = z.object({ username: usernameSchema });
+
+export const saveAccountSchema = z.object({ email: emailSchema, password: passwordSchema });
+
 export const loginSchema = z.object({
   email: emailSchema,
   password: z.string().min(1, "Enter your password.").max(72),

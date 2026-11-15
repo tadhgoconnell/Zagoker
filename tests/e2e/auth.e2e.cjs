@@ -80,7 +80,7 @@ async function login(page, u, password = u.password) {
 
   // --- Second, independent user on a phone-sized screen ----------------------
   await b.goto(`${BASE}/profile`);
-  check(b.url().includes("/login"), "other browser is not signed in");
+  check(b.url().includes("/play?next=%2Fprofile"), "a visitor without a session is sent to the guest entry page", b.url());
   await register(b, { ...B, username: A.username.toUpperCase() });
   await b.waitForSelector("#field-username-error");
   check((await b.textContent("#field-username-error")).includes("taken"), "duplicate username (different case) is rejected");
@@ -106,10 +106,11 @@ async function login(page, u, password = u.password) {
   // --- Logout and login -------------------------------------------------------
   await a.click('header button[aria-label="Log out"]');
   await a.waitForURL(`${BASE}/`);
-  await a.waitForSelector('header a:has-text("Sign up free")');
+  await a.waitForSelector('header a:has-text("Play now")');
   check(true, "log out returns to home with signed-out header");
   await a.goto(`${BASE}/profile`);
-  check(a.url().includes("/login?next=%2Fprofile"), "profile is protected after log out");
+  check(a.url().includes("/play?next=%2Fprofile"), "profile is protected after log out");
+  await a.goto(`${BASE}/login?next=%2Fprofile`);
   await login(a, A, "wrong-password");
   await a.waitForSelector("form [role=alert]");
   check((await a.textContent("form [role=alert]")).includes("Incorrect email or password"), "wrong password is rejected");
@@ -149,6 +150,75 @@ async function login(page, u, password = u.password) {
   check(!!r8.error, "API: user cannot delete profiles", r8.error?.message);
   const { data: final } = await sb.from("profiles").select("username, chips, avatar").in("id", [uid, other.id]).order("username");
   check(final.length === 2 && final.every((p) => Number(p.chips) === 10000), "both balances are exactly 10,000 after all attempts", JSON.stringify(final));
+
+  // --- Guest play (no account) ---------------------------------------------------
+  const settings = await (await fetch(`${env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/settings`, { headers: { apikey: env.NEXT_PUBLIC_SUPABASE_ANON_KEY } })).json();
+  const guestsOn = settings.external?.anonymous_users === true;
+  const ctxG = await browser.newContext({ viewport: { width: 820, height: 1100 } });
+  const g = await ctxG.newPage();
+  g.on("pageerror", (e) => errors.push(e.message));
+  const guestName = `zagtest_${id}g`;
+  await g.goto(`${BASE}/`);
+  await g.click('main a:has-text("Play now")');
+  await g.waitForURL("**/play");
+  check(true, "'Play now' on the home page opens the guest entry page");
+  await g.fill("[name=username]", "x");
+  await g.click("main button[type=submit]");
+  await g.waitForSelector("#field-username-error");
+  check(true, "a guest name that is too short is rejected");
+  await g.fill("[name=username]", A.username);
+  await g.click("main button[type=submit]");
+  await g.waitForFunction(() => document.querySelector("#field-username-error")?.textContent?.includes("taken"));
+  check(true, "a guest cannot take a name that is already in use");
+  await g.goto(`${BASE}/play?next=%2Fleaderboard`);
+  await g.fill("[name=username]", guestName);
+  await g.click("main button[type=submit]");
+  if (!guestsOn) {
+    await g.waitForSelector("form [role=alert]");
+    check((await g.textContent("form [role=alert]")).includes("Guest play is switched off"), "with guest sign-in disabled in Supabase, the visitor gets a clear message");
+    console.log("SKIP - guest play checks: enable 'Allow anonymous sign-ins' in Supabase to run them");
+  } else {
+    await g.waitForURL("**/leaderboard", { timeout: 20000 });
+    check(true, "a guest enters with only a name and continues to the page they wanted");
+    await g.goto(`${BASE}/profile`);
+    await g.waitForSelector("h1");
+    const gp = await g.textContent("main");
+    check((await g.textContent("h1")).trim() === guestName && gp.includes("10,000") && gp.includes("Guest"), "the guest has a profile, 10,000 chips and is marked as a guest");
+    check(gp.includes("Save your account"), "the guest is offered the option to save their account");
+    await g.waitForSelector('header a:has-text("Save account")');
+    check((await g.locator('header button[aria-label="Log out"]').count()) === 0, "a guest is shown 'Save account' instead of a log-out button");
+    const lobby = await ctxG.request.get(`${BASE}/api/tables`);
+    check(lobby.status() === 200, "a guest can use the game API", lobby.status());
+    const bonus = await ctxG.request.post(`${BASE}/api/bonus`, { data: {} });
+    check(bonus.status() === 200, "a guest can claim the daily bonus", bonus.status());
+    const g2 = await ctxG.newPage();
+    await g2.goto(`${BASE}/lobby`);
+    check(g2.url().endsWith("/lobby"), "the guest session persists across tabs");
+    await g2.close();
+
+    // Saving the account keeps the same player.
+    const saved = { email: `zagtest_${id}g@example.com`, password: `pw-${id}-Guest!` };
+    await g.fill("[name=email]", A.email);
+    await g.fill("[name=password]", saved.password);
+    await g.click('main form button[type=submit]:has-text("Save my account")');
+    await g.waitForSelector("#field-email-error");
+    check((await g.textContent("#field-email-error")).includes("already exists"), "a guest cannot save their account with someone else's email");
+    await g.fill("[name=email]", saved.email);
+    await g.fill("[name=password]", saved.password);
+    await g.click('main form button[type=submit]:has-text("Save my account")');
+    await g.waitForURL("**/profile?saved=1", { timeout: 20000 });
+    await g.waitForSelector("h1");
+    const sp = await g.textContent("main");
+    check((await g.textContent("h1")).trim() === guestName && sp.includes("11,000") && !sp.includes("Save your account"), "after saving, the same name and chips are kept and the guest notice is gone");
+    await g.click('header button[aria-label="Log out"]');
+    await g.waitForURL(`${BASE}/`);
+    await g.goto(`${BASE}/login`);
+    await login(g, { ...saved });
+    await g.waitForURL("**/lobby", { timeout: 20000 });
+    await g.goto(`${BASE}/profile`);
+    await g.waitForSelector("h1");
+    check((await g.textContent("h1")).trim() === guestName, "the saved account can log in again with email and password");
+  }
 
   check(errors.length === 0, "no browser errors", errors.join("; "));
   console.log(`\nTest accounts created: ${A.email}, ${B.email}`);

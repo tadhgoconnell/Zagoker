@@ -18,6 +18,8 @@ Each migration is run once. If the Supabase CLI is linked to the project,
 
 - **Authentication → Sign In / Providers → Email**: turn **Confirm email** off
   (players can start straight after signing up).
+- **Authentication → Sign In / Providers**: turn **Allow anonymous sign-ins** on.
+  This is what lets visitors play as a guest with only a name.
 - **Authentication → URL Configuration**:
   - **Site URL**: the production address, e.g. `https://royal-poker.vercel.app`
   - **Redirect URLs**: add `http://localhost:3000/auth/callback` and

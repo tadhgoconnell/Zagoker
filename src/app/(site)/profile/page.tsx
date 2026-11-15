@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { SaveAccountForm } from "@/components/auth/forms";
 import { AvatarPicker } from "@/components/profile/avatar-picker";
 import { DailyBonus } from "@/components/social/daily-bonus";
 import { StatCards } from "@/components/social/stat-cards";
@@ -84,6 +85,11 @@ async function Profile({
           {formatChips(gameConfig.startingChips)} free chips have been added.
         </Alert>
       )}
+      {params.saved === "1" && (
+        <Alert tone="success">
+          Your account is saved. You can now log in with your email on any device.
+        </Alert>
+      )}
       {params.password === "updated" && (
         <Alert tone="success">Your password has been updated.</Alert>
       )}
@@ -96,7 +102,7 @@ async function Profile({
           </h1>
           <p className="mt-1 text-sm text-mist">
             Member since {dateFormat.format(new Date(user.createdAt))}
-            {user.email && <> · {user.email}</>}
+            {user.isGuest ? " · Guest" : user.email && <> · {user.email}</>}
           </p>
         </div>
         <div className="rounded-2xl border border-gold-500/30 bg-ink-900/60 px-6 py-4 text-center">
@@ -109,6 +115,20 @@ async function Profile({
           </p>
         </div>
       </Panel>
+
+      {user.isGuest && (
+        <Panel className="border-gold-500/40 p-6 sm:p-8">
+          <h2 className="text-lg font-semibold">Save your account</h2>
+          <p className="mt-1 mb-5 max-w-xl text-sm text-mist">
+            You are playing as a guest. Your name, chips and statistics are kept only in this browser:
+            clear its data or switch device and they are gone. Add an email and password to keep them
+            and log in anywhere. Optional, and free.
+          </p>
+          <div className="max-w-md">
+            <SaveAccountForm />
+          </div>
+        </Panel>
+      )}
 
       {seat && (
         <Panel className="flex flex-col items-start gap-3 border-gold-500/40 p-5 sm:flex-row sm:items-center sm:justify-between">

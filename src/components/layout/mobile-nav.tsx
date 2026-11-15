@@ -11,7 +11,7 @@ import { mainNav, routes } from "@/config/site";
 import { logoutAction } from "@/lib/auth/actions";
 import { formatChips } from "@/lib/utils";
 
-type NavUser = { username: string; avatar: AvatarKey; chips: number };
+type NavUser = { username: string; avatar: AvatarKey; chips: number; isGuest: boolean };
 
 export function MobileNav({ user }: { user: NavUser | null }) {
   const [open, setOpen] = useState(false);
@@ -94,7 +94,15 @@ export function MobileNav({ user }: { user: NavUser | null }) {
           </nav>
 
           <div className="mt-6 flex flex-col gap-3 border-t border-white/6 pt-6">
-            {user ? (
+            {user?.isGuest ? (
+              <Link
+                href={routes.profile}
+                onClick={close}
+                className={buttonStyles({ variant: "secondary", size: "lg" })}
+              >
+                Save account
+              </Link>
+            ) : user ? (
               <form action={logoutAction}>
                 <button
                   type="submit"
@@ -111,11 +119,11 @@ export function MobileNav({ user }: { user: NavUser | null }) {
             ) : (
               <>
                 <Link
-                  href={routes.register}
+                  href={routes.play}
                   onClick={close}
                   className={buttonStyles({ size: "lg" })}
                 >
-                  Sign up free
+                  Play now
                 </Link>
                 <Link
                   href={routes.login}

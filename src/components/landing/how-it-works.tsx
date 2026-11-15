@@ -6,8 +6,8 @@ import { formatChips } from "@/lib/utils";
 
 const steps = [
   {
-    title: "Create your account",
-    body: `Pick a username and get ${formatChips(gameConfig.startingChips)} free virtual chips straight away.`,
+    title: "Pick a name",
+    body: `No account needed. Choose a name and get ${formatChips(gameConfig.startingChips)} free virtual chips straight away.`,
   },
   {
     title: "Open or join a table",

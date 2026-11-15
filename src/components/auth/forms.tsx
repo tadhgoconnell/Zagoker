@@ -9,9 +9,11 @@ import { Field } from "@/components/ui/field";
 import { routes } from "@/config/site";
 import {
   forgotPasswordAction,
+  guestAction,
   loginAction,
   registerAction,
   resetPasswordAction,
+  saveAccountAction,
   type FormState,
 } from "@/lib/auth/actions";
 
@@ -156,6 +158,64 @@ export function ResetPasswordForm() {
         error={state.fieldErrors?.confirm}
       />
       <SubmitButton pending={pending}>Save new password</SubmitButton>
+    </form>
+  );
+}
+
+/** Pick a name and play. No email, no password. */
+export function GuestForm() {
+  const [state, action, pending] = useActionState(guestAction, initial);
+  const next = useSearchParams().get("next") ?? "";
+
+  return (
+    <form action={action} className="space-y-5" noValidate>
+      {state.error && <Alert tone="error">{state.error}</Alert>}
+      <input type="hidden" name="next" value={next} />
+      <Field
+        label="Your name at the table"
+        name="username"
+        autoComplete="nickname"
+        autoFocus
+        required
+        minLength={3}
+        maxLength={20}
+        defaultValue={state.values?.username}
+        error={state.fieldErrors?.username}
+        hint="3 to 20 characters. Letters, numbers and underscores."
+      />
+      <SubmitButton pending={pending}>Play now</SubmitButton>
+    </form>
+  );
+}
+
+/** Lets a guest keep their chips by adding an email and password. */
+export function SaveAccountForm() {
+  const [state, action, pending] = useActionState(saveAccountAction, initial);
+
+  return (
+    <form action={action} className="space-y-5" noValidate>
+      {state.error && <Alert tone="error">{state.error}</Alert>}
+      <Field
+        label="Email"
+        name="email"
+        type="email"
+        autoComplete="email"
+        required
+        defaultValue={state.values?.email}
+        error={state.fieldErrors?.email}
+      />
+      <Field
+        label="Password"
+        name="password"
+        type="password"
+        autoComplete="new-password"
+        required
+        minLength={8}
+        maxLength={72}
+        error={state.fieldErrors?.password}
+        hint="At least 8 characters."
+      />
+      <SubmitButton pending={pending}>Save my account</SubmitButton>
     </form>
   );
 }

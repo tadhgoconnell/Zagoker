@@ -24,6 +24,8 @@ export const gameConfig = {
 
 export const routes = {
   home: "/",
+  /** Guest entry: pick a name and play, no account needed. */
+  play: "/play",
   login: "/login",
   register: "/register",
   forgotPassword: "/forgot-password",
