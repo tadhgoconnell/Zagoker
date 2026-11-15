@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AvatarPicker } from "@/components/profile/avatar-picker";
+import { DailyBonus } from "@/components/social/daily-bonus";
+import { StatCards } from "@/components/social/stat-cards";
 import { Alert } from "@/components/ui/alert";
+import { ButtonLink } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
 import { Chip } from "@/components/ui/chip";
 import { Container } from "@/components/ui/container";
@@ -55,12 +58,14 @@ async function Profile({
   ]);
 
   const supabase = await createClient();
-  const [{ data: stats }, { data: transactions }] = await Promise.all([
+  const [{ data: stats }, { data: bonusNextAt }, { data: seat }, { data: transactions }] = await Promise.all([
     supabase
       .from("player_stats")
       .select("hands_played, hands_won, total_won, biggest_pot")
       .eq("user_id", user.id)
       .maybeSingle(),
+    supabase.rpc("daily_bonus_next_at"),
+    supabase.from("table_seats").select("table_id, stack").eq("user_id", user.id).maybeSingle(),
     supabase
       .from("chip_transactions")
       .select("id, amount, balance_after, kind, created_at")
@@ -70,16 +75,6 @@ async function Profile({
   ]);
 
   const handsPlayed = stats?.hands_played ?? 0;
-  const handsWon = stats?.hands_won ?? 0;
-  const winRate =
-    handsPlayed > 0 ? `${((handsWon / handsPlayed) * 100).toFixed(1)}%` : "—";
-
-  const statCards = [
-    { label: "Hands played", value: formatChips(handsPlayed) },
-    { label: "Hands won", value: formatChips(handsWon) },
-    { label: "Win rate", value: winRate },
-    { label: "Biggest pot won", value: formatChips(Number(stats?.biggest_pot ?? 0)) },
-  ];
 
   return (
     <div className="animate-fade-up space-y-6">
@@ -115,22 +110,27 @@ async function Profile({
         </div>
       </Panel>
 
+      {seat && (
+        <Panel className="flex flex-col items-start gap-3 border-gold-500/40 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm">
+            <span className="font-semibold text-gold-200">
+              {formatChips(Number(seat.stack))} more chips are at your table.
+            </span>{" "}
+            <span className="text-mist">They return to your balance when you leave it.</span>
+          </p>
+          <ButtonLink href={`/table/${seat.table_id}`} size="sm">
+            Return to your table
+          </ButtonLink>
+        </Panel>
+      )}
+
+      <DailyBonus nextAt={(bonusNextAt as string | null) ?? null} />
+
       <section aria-labelledby="stats-heading">
         <h2 id="stats-heading" className="sr-only">
           Statistics
         </h2>
-        <dl className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {statCards.map((s) => (
-            <Panel key={s.label} className="p-5">
-              <dt className="text-xs font-medium tracking-wide text-mist uppercase">
-                {s.label}
-              </dt>
-              <dd className="mt-2 font-display text-2xl font-bold tabular-nums">
-                {s.value}
-              </dd>
-            </Panel>
-          ))}
-        </dl>
+        <StatCards stats={stats} />
         {handsPlayed === 0 && (
           <p className="mt-3 text-sm text-slate">
             Your statistics will fill in once you have played some hands.

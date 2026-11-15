@@ -26,6 +26,9 @@ const known: [pattern: string, code: string, status: number, message: string][] 
   ["hand_in_progress", "hand_in_progress", 409, "Wait for the current hand to finish."],
   ["not_table_owner", "not_table_owner", 403, "Only the host can do that."],
   ["not_enough_players", "not_enough_players", 409, "At least two players with chips are needed."],
+  ["chat_rate_limited", "chat_rate_limited", 429, "You are sending messages too quickly. Wait a few seconds."],
+  ["invalid_message", "invalid_message", 400, "Messages must be between 1 and 500 characters."],
+  ["bonus_not_ready", "bonus_not_ready", 409, "You have already claimed today's bonus."],
   ["violates check constraint", "invalid_settings", 400, "Those table settings are not allowed."],
 ];
 

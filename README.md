@@ -3,7 +3,7 @@
 Free online multiplayer No-Limit Texas Hold'em. Virtual chips only: no real
 money, deposits, withdrawals or prizes.
 
-Status: **Stages 1 to 5 of 8 complete**: accounts, chips, poker engine, tables and live multiplayer.
+Status: **Stages 1 to 6 of 8 complete**: accounts, chips, poker engine, live multiplayer tables, chat, leaderboard and daily bonus.
 See [docs/CHECKLIST.md](docs/CHECKLIST.md) and
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 

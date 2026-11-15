@@ -599,6 +599,76 @@ describe.skipIf(!ADMIN_URL)("tables, hands and chip settlement (database)", () =
     });
   });
 
+  describe("chat, daily bonus and leaderboard", () => {
+    it("seated players can chat; messages are stored exactly as written", async () => {
+      await reset();
+      const t = await createTable("alice", { priv: true });
+      await join("alice", t.id);
+      await join("bob", t.id, null, t.room_code);
+      const text = "  nice hand, you lucky <b>donkey</b> 😀 '; drop table x; --  ";
+      await rpc("alice", "select send_chat_message($1,$2)", [t.id, text]);
+      const seen = await rpc("bob", "select username, body from chat_messages where table_id=$1", [t.id]);
+      expect(seen).toEqual([{ username: "alice", body: text.trim() }]);
+      // People who cannot see the table cannot read or post.
+      expect(await rpc("carol", "select body from chat_messages")).toEqual([]);
+      await expect(rpc("carol", "select send_chat_message($1,'hi')", [t.id])).rejects.toThrow(/not_seated/);
+      await expect(rpc(null, "select send_chat_message($1,'hi')", [t.id])).rejects.toThrow(/permission denied|not_authenticated/);
+      await expect(rpc("bob", "insert into chat_messages (table_id, user_id, username, body) values ($1,$2,'alice','forged')", [t.id, users.alice])).rejects.toThrow(/permission denied/);
+    });
+
+    it("rejects empty and over-long messages and limits bursts", async () => {
+      await reset();
+      await pool.query("delete from chat_messages");
+      const t = await createTable("alice");
+      await join("alice", t.id);
+      await expect(rpc("alice", "select send_chat_message($1,'   ')", [t.id])).rejects.toThrow(/invalid_message/);
+      await expect(rpc("alice", "select send_chat_message($1,$2)", [t.id, "x".repeat(501)])).rejects.toThrow(/invalid_message/);
+      await rpc("alice", "select send_chat_message($1,$2)", [t.id, "x".repeat(500)]);
+      for (let i = 0; i < 4; i++) await rpc("alice", "select send_chat_message($1,'spam')", [t.id]);
+      await expect(rpc("alice", "select send_chat_message($1,'spam')", [t.id])).rejects.toThrow(/chat_rate_limited/);
+    });
+
+    it("the daily bonus can be claimed once per 24 hours, even when claimed twice at once", async () => {
+      await reset();
+      await pool.query("delete from chip_transactions where kind = 'daily_bonus'");
+      expect((await rpc("alice", "select daily_bonus_next_at() n"))[0].n).toBeNull();
+      const results = await Promise.allSettled([1, 2, 3, 4].map(() => rpc("alice", "select claim_daily_bonus() r")));
+      expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1);
+      expect(results.filter((r) => r.status === "rejected").every((r) => /bonus_not_ready/.test(String((r as PromiseRejectedResult).reason)))).toBe(true);
+      expect(await chipsOf("alice")).toBe(11000);
+      expect((await rpc("alice", "select daily_bonus_next_at() n"))[0].n).not.toBeNull();
+      expect(await chipsOf("bob")).toBe(10000); // other players are unaffected
+
+      // 23 hours later: still too early. 25 hours later: allowed again.
+      await pool.query("update chip_transactions set created_at = now() - interval '23 hours' where kind='daily_bonus'");
+      await expect(rpc("alice", "select claim_daily_bonus()")).rejects.toThrow(/bonus_not_ready/);
+      await pool.query("update chip_transactions set created_at = now() - interval '25 hours' where kind='daily_bonus'");
+      const [{ r }] = await rpc("alice", "select claim_daily_bonus() r");
+      expect(r).toMatchObject({ amount: 1000, balance: 12000 });
+      await expect(rpc(null, "select claim_daily_bonus()")).rejects.toThrow(/permission denied/);
+      await pool.query("delete from chip_transactions where kind = 'daily_bonus'");
+    });
+
+    it("the leaderboard counts chips at tables and never exposes more than totals", async () => {
+      await reset();
+      const t = await createTable("alice", { priv: true });
+      await join("alice", t.id); // 2,000 of alice's chips are now at a private table
+      await pool.query("update profiles set chips = 15000 where id=$1", [users.bob]);
+      await pool.query("update player_stats set hands_won = 9, biggest_pot = 700 where user_id=$1", [users.carol]);
+      const byChips = await rpc(null, "select rank::int, username, chips::int from get_leaderboard('chips', 3)");
+      expect(byChips[0]).toEqual({ rank: 1, username: "bob", chips: 15000 });
+      expect(byChips).toHaveLength(3);
+      expect(byChips.find((r) => r.username === "alice")?.chips ?? 10000).toBe(10000);
+      expect((await rpc(null, "select username from get_leaderboard('hands_won', 1)"))[0].username).toBe("carol");
+      expect((await rpc(null, "select username from get_leaderboard('biggest_pot', 1)"))[0].username).toBe("carol");
+      expect(await rpc(null, "select username from get_leaderboard('chips; drop table profiles', 1000)")).toHaveLength(4);
+
+      const [profile] = await rpc(null, "select username, chips::int, chip_rank::int, hands_won from get_player_profile('ALICE')");
+      expect(profile).toEqual({ username: "alice", chips: 10000, chip_rank: 2, hands_won: 0 });
+      expect(await rpc(null, "select * from get_player_profile('nobody')")).toEqual([]);
+    });
+  });
+
   describe("many random hands", () => {
     it("300 hands with joins and leaves never create or lose a chip", async () => {
       await reset();

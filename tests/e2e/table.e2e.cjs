@@ -57,12 +57,28 @@ const shot = async (page, name) => SHOTS && page.screenshot({ path: `${SHOTS}/${
 
   // Next.js keeps the previous page in the DOM, hidden, so only match visible elements.
   const seatOf = (page, name) => page.locator("[data-seat]:visible", { hasText: name });
-  const resultShown = (page) => page.locator("[aria-live=polite] p.font-semibold:visible").first().isVisible();
+  const resultShown = (page) => page.locator("[data-result] p.font-semibold:visible").first().isVisible();
   const handNo = async (page) => Number(await page.locator("[data-hand-number]:visible").getAttribute("data-hand-number"));
   const waitHandAbove = async (page, n, timeout = 25000) => {
     const end = Date.now() + timeout;
     while (Date.now() < end) { if ((await handNo(page).catch(() => 0)) > n) return; await sleep(250); }
     throw new Error(`hand number stayed at ${n}`);
+  };
+  /** "handNumber:version" of the game as this page currently shows it. */
+  const gameKey = (page) => page.locator("[data-table]:visible").evaluate((el) => `${el.dataset.handNumber}:${el.dataset.handVersion}`).catch(() => "");
+  const waitKeyChange = async (page, before, timeout = 15000) => {
+    const end = Date.now() + timeout;
+    while (Date.now() < end) { if ((await gameKey(page)) !== before) return; await sleep(50); }
+    throw new Error("the game did not advance on the observing screen");
+  };
+  /** The side panel opens on Chat; these checks read the hand history tab. */
+  const showHistory = async (page) => {
+    const tab = page.locator("[role=tab]:visible", { hasText: "Hand history" });
+    if ((await tab.count()) === 0) {
+      await page.locator("button[aria-label^='Chat and hand history']:visible").click();
+      await tab.click();
+      await page.locator("button[aria-label='Close panel']:visible").click();
+    } else await tab.click();
   };
   const canAct = (p) => p.page.getByRole("button", { name: "Fold", exact: true }).isEnabled({ timeout: 200 }).catch(() => false);
   async function waitActor(among = players, timeout = 15000) {
@@ -79,7 +95,7 @@ const shot = async (page, name) => SHOTS && page.screenshot({ path: `${SHOTS}/${
       const p = await waitActor();
       if (!p) throw new Error("nobody can act");
       const watcher = observer && observer !== p && !observer.page.isClosed() ? observer : players.find((x) => x !== p && !x.page.isClosed());
-      const before = await watcher.page.locator("aside ol li").count();
+      const before = await gameKey(watcher.page);
       const button = p.page.getByRole("button", { name: /^(Check|Call)/ });
       const t0 = Date.now();
       try {
@@ -87,7 +103,7 @@ const shot = async (page, name) => SHOTS && page.screenshot({ path: `${SHOTS}/${
       } catch {
         continue; // the controls were replaced while we looked; pick the actor again
       }
-      await watcher.page.waitForFunction((n) => document.querySelectorAll("aside ol li").length > n, before, { timeout: 15000 });
+      await waitKeyChange(watcher.page, before);
       return Date.now() - t0;
     }
     throw new Error("could not act");
@@ -135,7 +151,8 @@ const shot = async (page, name) => SHOTS && page.screenshot({ path: `${SHOTS}/${
   await C.page.waitForURL("**/table/*");
   await Promise.all([seatOf(A.page, C.username).waitFor({ timeout: 10000 }), seatOf(B.page, C.username).waitFor({ timeout: 10000 })]);
   check(true, "third player joins with the room code typed into the lobby; both others see it live");
-  check(await B.page.getByText("Waiting for the host to start the game").isVisible(), "guests wait for the host to start");
+  for (const p of players) await showHistory(p.page);
+  check(await B.page.getByText("Waiting for the host to start the game").first().isVisible(), "guests wait for the host to start");
   check((await B.page.getByRole("button", { name: "Start game" }).count()) === 0, "guests have no start button");
 
   // --- Host starts; cards are private ---------------------------------------------
@@ -174,6 +191,7 @@ const shot = async (page, name) => SHOTS && page.screenshot({ path: `${SHOTS}/${
   const bCardsBefore = await ownCards(B.page).evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")));
   await B.page.reload();
   await ownCards(B.page).nth(1).waitFor({ timeout: 15000 });
+  await showHistory(B.page);
   const bCardsAfter = await ownCards(B.page).evaluateAll((els) => els.map((e) => e.getAttribute("aria-label")));
   check(JSON.stringify(bCardsBefore) === JSON.stringify(bCardsAfter), "after a page reload mid-hand the player gets the same cards back", bCardsAfter.join(" + "));
 
@@ -188,14 +206,15 @@ const shot = async (page, name) => SHOTS && page.screenshot({ path: `${SHOTS}/${
     await passiveStep(p === A ? C : A);
     acted++;
   }
-  const logOnA = await A.page.locator("aside ol li").count();
+  const keyOnA = await gameKey(A.page);
   await B.ctx.setOffline(false);
-  await B.page.waitForFunction((n) => document.querySelectorAll("aside ol li").length >= n, logOnA, { timeout: 20000 });
+  for (let i = 0; i < 200 && (await gameKey(B.page)) !== keyOnA; i++) await sleep(100);
+  check((await gameKey(B.page)) === keyOnA, "the reconnected screen shows the same game state as the others", keyOnA);
   check(true, "a player who lost their connection catches up automatically when it returns", `${acted} actions missed`);
 
   const latencies = await playOut(A);
-  await Promise.all(players.map((p) => p.page.locator("[aria-live=polite] p.font-semibold").first().waitFor({ timeout: 15000 })));
-  const outcome = await A.page.locator("[aria-live=polite]").innerText();
+  await Promise.all(players.map((p) => p.page.locator("[data-result] p.font-semibold").first().waitFor({ timeout: 15000 })));
+  const outcome = await A.page.locator("[data-result]:visible").innerText();
   check(/wins|split/.test(outcome), "the result is announced on every screen", outcome.replace(/\n/g, "; "));
   if (latencies.length) {
     const sorted = latencies.slice().sort((a, b) => a - b);

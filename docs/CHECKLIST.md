@@ -30,7 +30,7 @@ Legend: [x] built and tested · [ ] not started
 - [x] Abandoned hands cancelled with chips restored; leaving mid-hand handled
 - [x] 32 database integration tests (`npm run test:db`), 70 live API checks (`tests/e2e/game.e2e.cjs`)
 
-## Stage 5 — Real-time multiplayer (awaiting approval)
+## Stage 5 — Real-time multiplayer (done)
 - [x] Live updates through Supabase Realtime, with polling fallback and resync on reconnect
 - [x] Public and private tables, room codes, invitation links (`/join/CODE`)
 - [x] Lobby with live table list, create-table form, join by code
@@ -39,13 +39,15 @@ Legend: [x] built and tested · [ ] not started
 - [x] Automatic next hand; host starts the first hand at private tables
 - [x] Presence: disconnected players are marked
 - [x] Scheduled database maintenance (stale hands, long-absent players, idle tables)
-- [x] 38 live multi-browser checks through the UI (`tests/e2e/table.e2e.cjs`)
+- [x] 39 live multi-browser checks through the UI (`tests/e2e/table.e2e.cjs`)
 
-## Stage 6 — Lobby and social
-- [ ] Lobby, create/join table
-- [ ] Profiles, statistics, leaderboard
-- [ ] Table chat
-- [ ] Daily chip bonus
+## Stage 6 — Lobby and social (awaiting approval)
+- [x] Lobby with live public tables, create and join (built in stage 5)
+- [x] Public player profiles (`/players/NAME`) and own profile with statistics
+- [x] Leaderboard: top 50 by chips, hands won or biggest pot
+- [x] Table chat: live, uncensored, plain-text rendering, 5 messages per 10 seconds
+- [x] Daily bonus: 1,000 chips every 24 hours, duplicate-proof
+- [x] 36 database tests, 36 live checks (`tests/e2e/social.e2e.cjs`)
 
 ## Stage 7 — Design and UX polish
 - [ ] Animations, loading/error/empty states, responsive table
@@ -53,5 +55,3 @@ Legend: [x] built and tested · [ ] not started
 ## Stage 8 — Testing, security, deployment
 - [ ] Full test pass, permission audit, Vercel deployment guide
 
-## Placeholder routes to replace
-`/leaderboard` (stage 6) currently shows an honest "arrives in stage N" notice with no fake controls.

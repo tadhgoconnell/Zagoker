@@ -72,7 +72,7 @@ export function PokerTable({ snapshot, online, deadline, onSit, centerMessage }:
                   ),
                 )}
               </div>
-              <div className="min-h-9 text-xs sm:text-sm" aria-live="polite">
+              <div className="min-h-9 text-xs sm:text-sm" aria-live="polite" data-result>
                 {hand.result ? (
                   hand.result.pots.map((pot, i) => (
                     <p key={i} className="animate-fade-up font-semibold text-gold-200">

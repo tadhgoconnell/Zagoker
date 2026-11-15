@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Copy, DoorOpen, Link2, Lock, ScrollText, Wifi, WifiOff, X } from "lucide-react";
+import { Check, Copy, DoorOpen, Link2, Lock, MessageSquare, Wifi, WifiOff, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -13,6 +13,7 @@ import { cn, formatChips } from "@/lib/utils";
 import { ActionBar } from "./action-bar";
 import { HandLog } from "./hand-log";
 import { PokerTable } from "./poker-table";
+import { TableChat, useTableChat } from "./table-chat";
 import { useTable } from "./use-table";
 
 export function TableClient({ tableId, userId }: { tableId: string; userId: string }) {
@@ -20,10 +21,18 @@ export function TableClient({ tableId, userId }: { tableId: string; userId: stri
   const { snapshot, status, live, online, clockOffset, refresh } = useTable(tableId, userId);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
-  const [logOpen, setLogOpen] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [tab, setTab] = useState<"chat" | "history">("chat");
+  const chat = useTableChat(tableId);
+  /** Id of the newest chat message the player has had on screen. */
+  const [seenChatId, setSeenChatId] = useState(0);
   const [copied, setCopied] = useState<"code" | "link" | null>(null);
   /** Bumped to retry the automatic deal when the server says "too soon". */
   const [dealRetry, setDealRetry] = useState(0);
+
+  const latestChatId = chat.at(-1)?.id ?? 0;
+  // The dot only matters on small screens, where the panel is closed by default.
+  const unread = !panelOpen && latestChatId > seenChatId && chat.at(-1)?.user_id !== userId;
 
   const url = `/api/tables/${tableId}`;
 
@@ -209,7 +218,13 @@ export function TableClient({ tableId, userId }: { tableId: string; userId: stri
   } else {
     controls = (
       <p className="text-center text-sm text-mist">
-        {ready < 2 ? "Waiting for another player to sit down." : "Next hand starting…"}
+        {ready < 2
+          ? "Waiting for another player to sit down."
+          : gameStarted || !table.is_private
+            ? "Next hand starting…"
+            : isHost
+              ? "Press Start game when everyone is seated."
+              : "Waiting for the host to start the game."}
       </p>
     );
   }
@@ -219,6 +234,7 @@ export function TableClient({ tableId, userId }: { tableId: string; userId: stri
       className="flex h-[calc(100dvh-4rem)] min-h-[34rem] flex-col"
       data-table={table.id}
       data-hand-number={snapshot.handNumber}
+      data-hand-version={hand?.version ?? -1}
     >
       {/* Top bar */}
       <div className="flex items-center gap-2 border-b border-white/6 bg-ink-900/60 px-3 py-2 sm:gap-3 sm:px-5">
@@ -257,8 +273,18 @@ export function TableClient({ tableId, userId }: { tableId: string; userId: stri
           {copied === "link" ? <Check className="size-4 text-success" /> : <Link2 className="size-4" />}
           <span className="hidden sm:inline">{copied === "link" ? "Copied" : "Invite"}</span>
         </Button>
-        <Button variant="ghost" size="sm" onClick={() => setLogOpen((v) => !v)} className="px-3 lg:hidden" aria-label="Hand history">
-          <ScrollText className="size-4" />
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            setPanelOpen((v) => !v);
+            setSeenChatId(latestChatId);
+          }}
+          className="relative px-3 lg:hidden"
+          aria-label={unread ? "Chat and hand history (new messages)" : "Chat and hand history"}
+        >
+          <MessageSquare className="size-4" />
+          {unread && <span className="absolute top-1.5 right-2 size-2 rounded-full bg-gold-400" />}
         </Button>
         {isHost && !handRunning && (
           <Button variant="ghost" size="sm" disabled={busy} onClick={closeTable} className="hidden px-3 sm:inline-flex">
@@ -290,18 +316,43 @@ export function TableClient({ tableId, userId }: { tableId: string; userId: stri
         </div>
         <aside
           className={cn(
-            "w-72 shrink-0 overflow-y-auto border-l border-white/6 bg-ink-900/95 lg:block lg:bg-ink-900/40",
-            logOpen ? "absolute inset-y-0 right-0 z-30 block" : "hidden",
+            "w-80 max-w-full shrink-0 flex-col border-l border-white/6 bg-ink-900/95 lg:flex lg:bg-ink-900/40",
+            panelOpen ? "absolute inset-y-0 right-0 z-30 flex" : "hidden",
           )}
-          aria-label="Hand history"
+          aria-label="Chat and hand history"
         >
-          <div className="flex items-center justify-between border-b border-white/6 px-4 py-2 lg:hidden">
-            <span className="text-sm font-semibold">Hand history</span>
-            <button type="button" onClick={() => setLogOpen(false)} aria-label="Close hand history" className="p-1 text-mist">
+          <div className="flex items-center border-b border-white/6" role="tablist">
+            {(["chat", "history"] as const).map((t) => (
+              <button
+                key={t}
+                type="button"
+                role="tab"
+                aria-selected={tab === t}
+                onClick={() => setTab(t)}
+                className={cn(
+                  "flex-1 border-b-2 px-4 py-2.5 text-sm font-semibold transition-colors",
+                  tab === t ? "border-gold-400 text-cream" : "border-transparent text-slate hover:text-mist",
+                )}
+              >
+                {t === "chat" ? "Chat" : "Hand history"}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => setPanelOpen(false)}
+              aria-label="Close panel"
+              className="p-3 text-mist lg:hidden"
+            >
               <X className="size-4" />
             </button>
           </div>
-          <HandLog hand={hand} handNumber={snapshot.handNumber} nameOf={nameOf} />
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            {tab === "chat" ? (
+              <TableChat tableId={tableId} messages={chat} myId={userId} canPost={mySeat !== null} />
+            ) : (
+              <HandLog hand={hand} handNumber={snapshot.handNumber} nameOf={nameOf} />
+            )}
+          </div>
         </aside>
 
         {notice && (

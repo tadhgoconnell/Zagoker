@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { LobbyClient } from "@/components/lobby/lobby-client";
+import { DailyBonus } from "@/components/social/daily-bonus";
 import { Container } from "@/components/ui/container";
 import { routes } from "@/config/site";
 import { requireUser } from "@/lib/auth/session";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Lobby" };
 
@@ -21,5 +23,12 @@ export default function LobbyPage() {
 
 async function Lobby() {
   const user = await requireUser(routes.lobby);
-  return <LobbyClient chips={user.chips} />;
+  const supabase = await createClient();
+  const { data: bonusNextAt } = await supabase.rpc("daily_bonus_next_at");
+  return (
+    <div className="space-y-6">
+      <DailyBonus nextAt={(bonusNextAt as string | null) ?? null} />
+      <LobbyClient chips={user.chips} />
+    </div>
+  );
 }

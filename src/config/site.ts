@@ -16,6 +16,8 @@ export const siteConfig = {
 export const gameConfig = {
   /** Virtual chips granted exactly once at registration. */
   startingChips: 10_000,
+  /** Free chips claimable once every 24 hours. Must match claim_daily_bonus() in the database. */
+  dailyBonus: 1_000,
   minPlayers: 2,
   maxPlayers: 9,
 } as const;
@@ -29,6 +31,7 @@ export const routes = {
   profile: "/profile",
   lobby: "/lobby",
   leaderboard: "/leaderboard",
+  player: (username: string) => `/players/${encodeURIComponent(username)}`,
 } as const;
 
 export const mainNav = [
