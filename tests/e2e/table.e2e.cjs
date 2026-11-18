@@ -23,6 +23,9 @@ const env = Object.fromEntries(
 const sb = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, { auth: { persistSession: false } });
 
 let failed = 0;
+/** Browser messages saying the Content Security Policy blocked something. */
+const csp = [];
+const watchCsp = (page) => page.on("console", (m) => { if (/Content Security Policy/i.test(m.text())) csp.push(m.text().slice(0, 160)); });
 const check = (ok, label, extra = "") => {
   if (!ok) failed++;
   console.log(`${ok ? "PASS" : "FAIL"} - ${label}${extra !== "" ? ` (${extra})` : ""}`);
@@ -41,7 +44,7 @@ const shot = async (page, name) => SHOTS && page.screenshot({ path: `${SHOTS}/${
   for (const tag of ["a", "b", "c"]) {
     const u = { tag, username: `zagtest_${id}${tag}`, email: `zagtest_${id}${tag}@example.com`, password: `pw-${id}-${tag}-Zz!` };
     const ctx = await browser.newContext({ viewport: viewports[tag], ignoreHTTPSErrors: !!process.env.BROWSER_PROXY });
-    const page = await ctx.newPage();
+    const page = await ctx.newPage(); watchCsp(page);
     page.on("pageerror", (e) => errors.push(`${tag}: ${e.message}`));
     await page.goto(`${BASE}/register`);
     await page.fill("[name=username]", u.username);
@@ -340,6 +343,7 @@ const shot = async (page, name) => SHOTS && page.screenshot({ path: `${SHOTS}/${
 
   await lobbyCtx.close();
   console.log(`\nTest accounts created: ${players.map((p) => p.username).join(", ")}`);
+  check(csp.length === 0, "the Content Security Policy blocked nothing the site needs", csp.slice(0, 2).join(" | "));
   console.log(failed ? `\n${failed} CHECK(S) FAILED` : "\nALL CHECKS PASSED");
   await browser.close();
   process.exit(failed ? 1 : 0);

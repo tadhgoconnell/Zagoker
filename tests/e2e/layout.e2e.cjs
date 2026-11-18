@@ -12,6 +12,9 @@ const BASE = process.env.BASE_URL ?? "http://localhost:3000";
 const SHOTS = process.env.SCREENSHOT_DIR;
 const proxied = !!process.env.BROWSER_PROXY;
 let failed = 0;
+/** Browser messages saying the Content Security Policy blocked something. */
+const csp = [];
+const watchCsp = (page) => page.on("console", (m) => { if (/Content Security Policy/i.test(m.text())) csp.push(m.text().slice(0, 160)); });
 const check = (ok, label, extra = "") => {
   if (!ok) failed++;
   console.log(`${ok ? "PASS" : "FAIL"} - ${label}${extra !== "" ? ` (${extra})` : ""}`);
@@ -29,7 +32,7 @@ const screens = [
 
 async function guest(browser, opts, name) {
   const ctx = await browser.newContext({ ...opts, ignoreHTTPSErrors: proxied });
-  const page = await ctx.newPage();
+  const page = await ctx.newPage(); watchCsp(page);
   await page.goto(`${BASE}/play`);
   await page.fill("[name=username]", name);
   await page.click("main button[type=submit]");
@@ -75,7 +78,7 @@ async function guest(browser, opts, name) {
       // /play sends signed-in players to the lobby; check it signed out instead.
       if (label === "play") {
         const anon = await browser.newContext({ ...opts, ignoreHTTPSErrors: proxied });
-        const ap = await anon.newPage();
+        const ap = await anon.newPage(); watchCsp(ap);
         await ap.goto(`${BASE}/play`);
         const wide = await ap.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
         if (wide > 0) overflows.push(`play +${wide}px`);
@@ -138,6 +141,7 @@ async function guest(browser, opts, name) {
   await host.page.locator("button[aria-label='Close table']:visible").click();
   await host.page.getByRole("dialog").getByRole("button", { name: "Close table" }).click();
   console.log(`\nTable: ${tableUrl}`);
+  check(csp.length === 0, "the Content Security Policy blocked nothing the site needs", csp.slice(0, 2).join(" | "));
   console.log(failed ? `\n${failed} CHECK(S) FAILED` : "\nALL CHECKS PASSED");
   await browser.close();
   process.exit(failed ? 1 : 0);

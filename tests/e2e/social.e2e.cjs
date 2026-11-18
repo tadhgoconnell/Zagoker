@@ -20,6 +20,9 @@ const env = Object.fromEntries(
 const sb = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, { auth: { persistSession: false } });
 
 let failed = 0;
+/** Browser messages saying the Content Security Policy blocked something. */
+const csp = [];
+const watchCsp = (page) => page.on("console", (m) => { if (/Content Security Policy/i.test(m.text())) csp.push(m.text().slice(0, 160)); });
 const check = (ok, label, extra = "") => {
   if (!ok) failed++;
   console.log(`${ok ? "PASS" : "FAIL"} - ${label}${extra !== "" ? ` (${extra})` : ""}`);
@@ -35,7 +38,7 @@ const proxied = !!process.env.BROWSER_PROXY;
   for (const [tag, viewport] of [["a", { width: 1366, height: 800 }], ["b", { width: 390, height: 844 }]]) {
     const u = { tag, username: `zagtest_${id}${tag}`, email: `zagtest_${id}${tag}@example.com`, password: `pw-${id}-${tag}-Zz!` };
     const ctx = await browser.newContext({ viewport, ignoreHTTPSErrors: proxied });
-    const page = await ctx.newPage();
+    const page = await ctx.newPage(); watchCsp(page);
     page.on("pageerror", (e) => errors.push(`${tag}: ${e.message}`));
     page.on("dialog", (d) => d.accept().catch(() => {}));
     await page.goto(`${BASE}/register`);
@@ -82,7 +85,7 @@ const proxied = !!process.env.BROWSER_PROXY;
   check((await A.page.locator("main").innerText()).includes("+1,000"), "the bonus appears in the chip history");
 
   // --- Leaderboard and public profiles (no login needed) -----------------------
-  const anon = await anonCtx.newPage();
+  const anon = await anonCtx.newPage(); watchCsp(anon);
   await anon.goto(`${BASE}/leaderboard`);
   await anon.locator("tbody tr").first().waitFor({ timeout: 15000 });
   const board = await anon.locator("tbody tr").evaluateAll((rows) => rows.map((r) => ({
@@ -188,6 +191,7 @@ const proxied = !!process.env.BROWSER_PROXY;
   check(errors.length === 0, "no browser errors", errors.slice(0, 3).join("; "));
 
   console.log(`\nTest accounts created: ${players.map((p) => p.username).join(", ")}`);
+  check(csp.length === 0, "the Content Security Policy blocked nothing the site needs", csp.slice(0, 2).join(" | "));
   console.log(failed ? `\n${failed} CHECK(S) FAILED` : "\nALL CHECKS PASSED");
   await browser.close();
   process.exit(failed ? 1 : 0);

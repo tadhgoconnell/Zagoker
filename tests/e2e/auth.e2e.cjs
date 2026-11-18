@@ -20,6 +20,9 @@ const env = Object.fromEntries(
 );
 
 let failed = 0;
+/** Browser messages saying the Content Security Policy blocked something. */
+const csp = [];
+const watchCsp = (page) => page.on("console", (m) => { if (/Content Security Policy/i.test(m.text())) csp.push(m.text().slice(0, 160)); });
 const check = (ok, label, extra = "") => {
   if (!ok) failed++;
   console.log(`${ok ? "PASS" : "FAIL"} - ${label}${extra ? ` (${extra})` : ""}`);
@@ -47,8 +50,8 @@ async function login(page, u, password = u.password) {
   // Two independent browser sessions, like two people on different devices.
   const ctxA = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const ctxB = await browser.newContext({ viewport: { width: 390, height: 844 } });
-  const a = await ctxA.newPage();
-  const b = await ctxB.newPage();
+  const a = await ctxA.newPage(); watchCsp(a);
+  const b = await ctxB.newPage(); watchCsp(b);
   for (const p of [a, b]) p.on("pageerror", (e) => errors.push(e.message));
 
   // --- Registration ---------------------------------------------------------
@@ -71,7 +74,7 @@ async function login(page, u, password = u.password) {
   check(await a.locator('button[aria-label="crown avatar (current)"]').count() === 1, "avatar change is saved and survives a reload");
 
   // --- Session ----------------------------------------------------------------
-  const a2 = await ctxA.newPage();
+  const a2 = await ctxA.newPage(); watchCsp(a2);
   await a2.goto(`${BASE}/profile`);
   check(a2.url().endsWith("/profile"), "session persists in a new tab");
   await a2.goto(`${BASE}/login`);
@@ -155,7 +158,7 @@ async function login(page, u, password = u.password) {
   const settings = await (await fetch(`${env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/settings`, { headers: { apikey: env.NEXT_PUBLIC_SUPABASE_ANON_KEY } })).json();
   const guestsOn = settings.external?.anonymous_users === true;
   const ctxG = await browser.newContext({ viewport: { width: 820, height: 1100 } });
-  const g = await ctxG.newPage();
+  const g = await ctxG.newPage(); watchCsp(g);
   g.on("pageerror", (e) => errors.push(e.message));
   const guestName = `zagtest_${id}g`;
   await g.goto(`${BASE}/`);
@@ -195,7 +198,7 @@ async function login(page, u, password = u.password) {
     check(lobby.status() === 200, "a guest can use the game API", lobby.status());
     const bonus = await ctxG.request.post(`${BASE}/api/bonus`, { data: {} });
     check(bonus.status() === 200, "a guest can claim the daily bonus", bonus.status());
-    const g2 = await ctxG.newPage();
+    const g2 = await ctxG.newPage(); watchCsp(g2);
     await g2.goto(`${BASE}/lobby`);
     check(g2.url().endsWith("/lobby"), "the guest session persists across tabs");
     await g2.close();
@@ -227,6 +230,7 @@ async function login(page, u, password = u.password) {
 
   check(errors.length === 0, "no browser errors", errors.join("; "));
   console.log(`\nTest accounts created: ${A.email}, ${B.email}`);
+  check(csp.length === 0, "the Content Security Policy blocked nothing the site needs", csp.slice(0, 2).join(" | "));
   console.log(failed ? `\n${failed} CHECK(S) FAILED` : "\nALL CHECKS PASSED");
   await browser.close();
   process.exit(failed ? 1 : 0);

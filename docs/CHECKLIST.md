@@ -55,7 +55,7 @@ Legend: [x] built and tested · [ ] not started
 - [x] Tested: entry page, name validation, redirects, clear message when guest sign-in is disabled
 - [x] Live guest flow: enter, play, claim bonus, save account, log back in; a friend joins from an invitation link with no account
 
-## Stage 7 — Design and user experience (awaiting approval)
+## Stage 7 — Design and user experience (done)
 - [x] Header switches to the menu below 1024px (fixes iPad portrait overflow); balance stays visible
 - [x] Table follows screen orientation: tall oval in portrait, wide in landscape; phones use full width
 - [x] Bet markers moved clear of the player's own cards
@@ -68,6 +68,12 @@ Legend: [x] built and tested · [ ] not started
 - [x] Error page with retry instead of a blank screen
 - [x] Layout sweep at 6 screen sizes (`tests/e2e/layout.e2e.cjs`): no sideways scrolling, every seat on screen
 
-## Stage 8 — Testing, security, deployment
-- [ ] Full test pass, permission audit, Vercel deployment guide
-
+## Stage 8 — Testing, security and deployment (awaiting approval)
+- [x] Dependency audit: 0 known vulnerabilities in production dependencies
+- [x] Database permission audit; now a permanent test (`tests/db/permissions.db.test.ts`)
+- [x] Hardening migration: two internal trigger functions no longer callable by clients
+- [x] Content Security Policy in production; browser tests fail if it blocks anything
+- [x] Full test pass: 165 unit/database tests and 6 live browser suites
+- [x] Deployment guide (`docs/DEPLOYMENT.md`) and test-account cleanup script
+- [ ] Verify the live Vercel deployment (needs the address)
+- [ ] Owner: run `20261118000001_hardening.sql` in Supabase
