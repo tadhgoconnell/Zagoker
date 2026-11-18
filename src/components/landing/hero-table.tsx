@@ -2,6 +2,7 @@ import { PlayingCard, type Rank, type Suit } from "@/components/cards/playing-ca
 import { Dealer } from "@/components/table/dealer";
 import { Avatar } from "@/components/ui/avatar";
 import { Chip } from "@/components/ui/chip";
+import { Dragon } from "@/components/ui/dragon";
 import { Facets } from "@/components/ui/facets";
 import type { AvatarKey } from "@/config/avatars";
 import { cn } from "@/lib/utils";
@@ -27,6 +28,8 @@ export function HeroTable({ className }: { className?: string }) {
         <div className="absolute inset-0 rounded-[50%] border border-ink-500 bg-ink-800" />
         <div className="absolute inset-[4.5%] overflow-hidden rounded-[50%] bg-felt-700">
           <Facets seed={3} cols={9} rows={6} strength={0.1} />
+          <Dragon mirrored className="absolute top-1/2 left-[26%] h-[60%] -translate-x-1/2 -translate-y-1/2 opacity-[0.16]" />
+          <Dragon className="absolute top-1/2 left-[74%] h-[60%] -translate-x-1/2 -translate-y-1/2 opacity-[0.16]" />
         </div>
         <div className="absolute inset-[11%] rounded-[50%] border border-accent-400/15" />
 

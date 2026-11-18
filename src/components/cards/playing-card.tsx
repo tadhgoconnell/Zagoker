@@ -1,3 +1,4 @@
+import { Dragon } from "@/components/ui/dragon";
 import { Facets } from "@/components/ui/facets";
 import { cn } from "@/lib/utils";
 
@@ -66,11 +67,7 @@ export function PlayingCard({
       >
         <Facets seed={7} cols={3} rows={4} strength={0.35} />
         <span className="absolute inset-[3px] rounded-[inherit] border border-accent-400/60" />
-        <svg viewBox="0 0 10 10" className="absolute inset-0 m-auto size-[38%]">
-          <polygon points="5,0.5 9.5,5 5,9.5 0.5,5" fill="#5ded51" />
-          <polygon points="5,0.5 5,5 0.5,5" fill="#9cf493" />
-          <polygon points="5,5 9.5,5 5,9.5" fill="#35a92c" />
-        </svg>
+        <Dragon className="absolute inset-0 m-auto h-[78%] w-[80%]" />
       </div>
     );
   }

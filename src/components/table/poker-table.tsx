@@ -5,6 +5,7 @@ import { Chip } from "@/components/ui/chip";
 import type { TableSnapshot } from "@/lib/game/types";
 import { cardParts } from "@/lib/poker/display";
 import { formatChips, formatChipsCompact } from "@/lib/utils";
+import { Dragon } from "@/components/ui/dragon";
 import { Facets } from "@/components/ui/facets";
 import { Dealer } from "./dealer";
 import { BetMarker, Seat } from "./seat";
@@ -60,6 +61,12 @@ export function PokerTable({ snapshot, online, deadline, onSit, centerMessage }:
         <div className="absolute inset-0 rounded-[50%] border border-ink-500 bg-ink-800 shadow-[0_30px_60px_-24px_rgb(0_0_0/0.9)]" />
         <div className="absolute inset-[3.5%] overflow-hidden rounded-[50%] bg-felt-700 sm:inset-[4.5%]">
           <Facets seed={hand ? 3 : 5} cols={9} rows={7} strength={0.09} />
+          {/* The table's emblem, printed faintly into the felt: one large dragon
+              on upright screens, a facing pair either side of the board on
+              wide ones (where the dealer would hide a single one). */}
+          <Dragon className="absolute top-1/2 left-1/2 h-[82%] -translate-x-1/2 -translate-y-1/2 opacity-[0.13] landscape:hidden" />
+          <Dragon mirrored className="absolute top-1/2 left-[25%] h-[62%] -translate-x-1/2 -translate-y-1/2 opacity-[0.16] portrait:hidden" />
+          <Dragon className="absolute top-1/2 left-[75%] h-[62%] -translate-x-1/2 -translate-y-1/2 opacity-[0.16] portrait:hidden" />
         </div>
         <div className="absolute inset-[11%] rounded-[50%] border border-accent-400/15" />
 
