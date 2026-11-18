@@ -32,12 +32,14 @@ export const routes = {
   resetPassword: "/reset-password",
   profile: "/profile",
   lobby: "/lobby",
+  practice: "/practice",
   leaderboard: "/leaderboard",
   player: (username: string) => `/players/${encodeURIComponent(username)}`,
 } as const;
 
 export const mainNav = [
   { label: "Lobby", href: routes.lobby },
+  { label: "Practice", href: routes.practice },
   { label: "Leaderboard", href: routes.leaderboard },
   { label: "How it works", href: "/#how-it-works" },
 ] as const;

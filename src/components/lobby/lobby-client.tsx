@@ -132,7 +132,16 @@ export function LobbyClient({ chips }: { chips: number }) {
           )}
         </section>
 
-        <aside>
+        <aside className="space-y-6">
+          <Panel className="p-5 sm:p-6">
+            <h2 className="text-lg font-semibold">Play alone</h2>
+            <p className="mt-1 text-sm text-mist">
+              Practise against 1 to 8 bots, each with their own style, at a difficulty from 0 to 10.
+            </p>
+            <ButtonLink href="/practice" variant="secondary" className="mt-4 w-full">
+              Play against bots
+            </ButtonLink>
+          </Panel>
           <Panel className="p-5 sm:p-6">
             <h2 className="flex items-center gap-2 text-lg font-semibold">
               Join a private table
