@@ -1,71 +1,51 @@
-import {
-  Coins,
-  KeyRound,
-  MessageSquare,
-  ShieldCheck,
-  Trophy,
-  Zap,
-  type LucideIcon,
-} from "lucide-react";
 import { SectionHeading } from "@/components/landing/section-heading";
 import { Container } from "@/components/ui/container";
-import { Panel } from "@/components/ui/panel";
 
-const features: { icon: LucideIcon; title: string; body: string }[] = [
+const features: { title: string; body: string }[] = [
   {
-    icon: Zap,
-    title: "Real-time multiplayer",
-    body: "Bets, cards and chip stacks update live for everyone at the table, with reconnection if your connection drops.",
+    title: "Live, for everyone",
+    body: "Bets, cards and stacks update on every screen as they happen. Lose your connection and you pick up where you left off.",
   },
   {
-    icon: KeyRound,
     title: "Private rooms",
-    body: "Every private table has its own room code and invitation link. Only people you invite can sit down.",
+    body: "Each private table has its own room code and invitation link. Only people you invite can sit down.",
   },
   {
-    icon: ShieldCheck,
-    title: "Server-dealt and fair",
-    body: "Cards are shuffled with secure randomness on the server. Your hole cards are never sent to anyone else.",
+    title: "Dealt by the server",
+    body: "Cards are shuffled with cryptographic randomness on the server. Your hole cards are never sent to anyone else.",
   },
   {
-    icon: MessageSquare,
     title: "Table chat",
-    body: "Talk through the hand, celebrate the river and needle your friends, all without leaving the table.",
+    body: "Talk through the hand, celebrate the river and needle your friends without leaving the table.",
   },
   {
-    icon: Trophy,
-    title: "Stats and leaderboards",
-    body: "Track hands played, hands won and your win rate, and see how you rank against everyone else.",
+    title: "Stats and rankings",
+    body: "Hands played, hands won, biggest pot. See where you stand on the leaderboard.",
   },
   {
-    icon: Coins,
-    title: "Daily free chips",
-    body: "Running low? Claim a free daily chip bonus. Chips are never sold and can never be cashed out.",
+    title: "Free chips daily",
+    body: "Running low? Claim free chips once a day. Chips are never sold and can never be cashed out.",
   },
 ];
 
 export function Features() {
   return (
-    <section className="border-y border-white/6 bg-ink-900/50 py-20 sm:py-28">
-      <Container>
-        <SectionHeading eyebrow="Features" title="Everything a home game needs">
-          Built around proper No-Limit Texas Hold&apos;em rules and a table that
-          works as well on a phone as it does on a desktop.
+    <section className="border-b border-ink-700 py-20 sm:py-24">
+      <Container className="grid gap-12 lg:grid-cols-[1fr_2fr]">
+        <SectionHeading eyebrow="What you get" title="Everything a home game needs.">
+          Proper No-Limit Hold&apos;em rules, and a table that works as well on a phone as on a desktop.
         </SectionHeading>
-
-        <ul className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {features.map(({ icon: Icon, title, body }) => (
-            <li key={title}>
-              <Panel className="group h-full p-6 transition-colors hover:border-gold-500/30">
-                <span className="grid size-11 place-items-center rounded-xl bg-felt-700/50 text-gold-300 ring-1 ring-felt-400/30">
-                  <Icon className="size-5" />
-                </span>
-                <h3 className="mt-5 text-lg font-semibold">{title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-mist">{body}</p>
-              </Panel>
-            </li>
+        <dl className="grid gap-x-10 gap-y-8 sm:grid-cols-2">
+          {features.map((f) => (
+            <div key={f.title} className="border-t border-ink-600 pt-5">
+              <dt className="flex items-center gap-2.5 font-display text-lg font-extrabold tracking-tight">
+                <span aria-hidden="true" className="size-2 rotate-45 bg-accent-400" />
+                {f.title}
+              </dt>
+              <dd className="mt-2 text-sm leading-relaxed text-mist">{f.body}</dd>
+            </div>
           ))}
-        </ul>
+        </dl>
       </Container>
     </section>
   );

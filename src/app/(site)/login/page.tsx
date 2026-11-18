@@ -12,7 +12,7 @@ export default function LoginPage() {
     <AuthCard
       title="Welcome back"
       subtitle="Log in to get back to the tables."
-      footer={<>New here? <Link href={routes.register} className="font-medium text-gold-300 hover:text-gold-200">Create a free account</Link></>}
+      footer={<>New here? <Link href={routes.register} className="font-medium text-accent-300 hover:text-accent-200">Create a free account</Link></>}
     >
       {/* The form reads ?next= from the URL, which is only known at request time. */}
       <Suspense fallback={<div className="h-72" />}>

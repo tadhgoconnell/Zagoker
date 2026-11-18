@@ -27,7 +27,7 @@ export function HandLog({
 
   return (
     <ol className="space-y-1 p-4 text-sm">
-      <li className="pb-1 text-xs font-semibold tracking-[0.2em] text-gold-400 uppercase">Hand #{handNumber}</li>
+      <li className="pb-1 text-xs font-semibold tracking-[0.2em] text-accent-400 uppercase">Hand #{handNumber}</li>
       {hand.actions.map((a, i) => {
         const heading = i === 0 || hand.actions[i - 1].street !== a.street ? a.street : null;
         return (
@@ -41,7 +41,7 @@ export function HandLog({
         );
       })}
       {hand.result?.pots.map((pot, i) => (
-        <li key={`pot-${i}`} className="pt-2 font-semibold text-gold-200">
+        <li key={`pot-${i}`} className="pt-2 font-semibold text-accent-200">
           {pot.winners.map((w) => nameOf(w.seat)).join(" & ")} {pot.winners.length > 1 ? "split" : "wins"}{" "}
           {formatChips(pot.amount)}
         </li>

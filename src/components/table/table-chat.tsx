@@ -116,7 +116,7 @@ export function TableChat({
         )}
         {messages.map((m) => (
           <li key={m.id} className="break-words">
-            <span className={cn("font-semibold", m.user_id === myId ? "text-gold-200" : "text-cream")}>
+            <span className={cn("font-semibold", m.user_id === myId ? "text-accent-300" : "text-cream")}>
               {m.username}
             </span>{" "}
             <time className="text-[10px] text-slate" dateTime={m.created_at}>
@@ -130,7 +130,7 @@ export function TableChat({
       </ol>
 
       {canPost ? (
-        <form onSubmit={send} className="border-t border-white/6 p-3">
+        <form onSubmit={send} className="border-t border-ink-700 p-3">
           {error && <p className="mb-2 text-xs text-danger" role="alert">{error}</p>}
           <div className="flex gap-2">
             <input
@@ -140,20 +140,20 @@ export function TableChat({
               maxLength={500}
               placeholder="Message the table"
               autoComplete="off"
-              className="h-10 min-w-0 flex-1 rounded-full border border-white/10 bg-ink-900 px-4 text-sm text-cream placeholder:text-slate focus:border-gold-400 focus:outline-none"
+              className="h-10 min-w-0 flex-1 rounded-lg border border-ink-600 bg-ink-900 px-4 text-sm text-cream placeholder:text-slate focus:border-accent-400 focus:outline-none"
             />
             <button
               type="submit"
               aria-label="Send message"
               disabled={sending || draft.trim().length === 0}
-              className="grid size-10 shrink-0 place-items-center rounded-full bg-gold-400 text-ink-950 transition-opacity disabled:opacity-40"
+              className="grid size-10 shrink-0 place-items-center rounded-lg bg-accent-400 text-ink-950 transition-opacity disabled:opacity-40"
             >
               <SendHorizontal className="size-4" />
             </button>
           </div>
         </form>
       ) : (
-        <p className="border-t border-white/6 p-3 text-center text-xs text-slate">Sit down to join the chat.</p>
+        <p className="border-t border-ink-700 p-3 text-center text-xs text-slate">Sit down to join the chat.</p>
       )}
     </div>
   );

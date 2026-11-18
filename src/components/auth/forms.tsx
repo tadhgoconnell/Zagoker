@@ -100,7 +100,7 @@ export function LoginForm() {
         />
         <Link
           href={routes.forgotPassword}
-          className="mt-2 inline-block text-sm text-gold-300 hover:text-gold-200"
+          className="mt-2 inline-block text-sm text-accent-300 hover:text-accent-200"
         >
           Forgot your password?
         </Link>

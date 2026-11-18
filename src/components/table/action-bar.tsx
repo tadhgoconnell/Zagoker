@@ -50,18 +50,18 @@ export function ActionBar({ hand, mySeat, disabled, onAction }: Props) {
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-3">
       {raise && raise.max > raise.min && (
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex gap-1.5">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="flex min-w-0 gap-1 sm:gap-1.5">
             {presets.map((p) => (
               <button
                 key={p.label}
                 type="button"
                 disabled={disabled}
                 onClick={() => setAmount(p.value)}
-                className={`h-9 rounded-full border px-3 text-xs font-semibold transition-colors ${
+                className={`h-9 shrink-0 rounded-lg border px-2.5 text-xs font-semibold transition-colors sm:px-3 ${
                   amount === p.value
-                    ? "border-gold-400 bg-gold-500/15 text-gold-200"
-                    : "border-white/12 text-mist hover:border-white/25 hover:text-cream"
+                    ? "border-accent-400 bg-accent-400 text-ink-950"
+                    : "border-ink-600 text-mist hover:border-ink-500 hover:text-cream"
                 }`}
               >
                 {p.label}
@@ -77,7 +77,8 @@ export function ActionBar({ hand, mySeat, disabled, onAction }: Props) {
             value={amount}
             disabled={disabled}
             onChange={(e) => setAmount(clamp(Number(e.target.value)))}
-            className="h-9 min-w-24 flex-1 accent-gold-400"
+            // Phones have the presets and the number box; the slider needs more room.
+            className="hidden h-9 min-w-24 flex-1 accent-accent-400 sm:block"
           />
           <input
             type="number"
@@ -89,7 +90,7 @@ export function ActionBar({ hand, mySeat, disabled, onAction }: Props) {
             disabled={disabled}
             onChange={(e) => setAmount(Number(e.target.value) || 0)}
             onBlur={() => setAmount(clamp(amount))}
-            className="h-9 w-24 rounded-full border border-white/12 bg-ink-900 px-3 text-right text-sm font-semibold text-cream tabular-nums focus:border-gold-400 focus:outline-none"
+            className="ml-auto h-9 w-20 min-w-0 rounded-lg border sm:ml-0 sm:w-24 border-ink-600 bg-ink-900 px-3 text-right text-sm font-semibold text-cream tabular-nums focus:border-accent-400 focus:outline-none"
           />
         </div>
       )}

@@ -37,7 +37,7 @@ export function AvatarPicker({ current }: { current: AvatarKey }) {
               className={cn(
                 "grid aspect-square place-items-center rounded-full p-0.5 transition-all sm:size-13",
                 selected
-                  ? "ring-2 ring-gold-400"
+                  ? "ring-2 ring-accent-400"
                   : "opacity-70 ring-1 ring-transparent hover:scale-105 hover:opacity-100",
               )}
             >

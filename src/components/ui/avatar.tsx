@@ -1,41 +1,65 @@
-import {
-  Cat,
-  Club,
-  Crown,
-  Diamond,
-  Flame,
-  Gem,
-  Ghost,
-  Heart,
-  Rocket,
-  Spade,
-  Star,
-  Zap,
-  type LucideIcon,
-} from "lucide-react";
 import type { AvatarKey } from "@/config/avatars";
+import { seeded, shadeHex } from "@/lib/lowpoly";
 import { cn } from "@/lib/utils";
 
-const avatars: Record<AvatarKey, { icon: LucideIcon; bg: string }> = {
-  spade: { icon: Spade, bg: "from-ink-500 to-ink-700" },
-  heart: { icon: Heart, bg: "from-[#c8262c] to-[#5c1215]" },
-  diamond: { icon: Diamond, bg: "from-[#2f7fd6] to-[#143a66]" },
-  club: { icon: Club, bg: "from-felt-500 to-felt-800" },
-  crown: { icon: Crown, bg: "from-gold-500 to-gold-700" },
-  star: { icon: Star, bg: "from-[#8b5cf6] to-[#3b2380]" },
-  flame: { icon: Flame, bg: "from-[#f97316] to-[#7c2d12]" },
-  bolt: { icon: Zap, bg: "from-[#eab308] to-[#713f12]" },
-  gem: { icon: Gem, bg: "from-[#14b8a6] to-[#134e4a]" },
-  rocket: { icon: Rocket, bg: "from-[#ec4899] to-[#701a45]" },
-  ghost: { icon: Ghost, bg: "from-[#64748b] to-[#1e293b]" },
-  cat: { icon: Cat, bg: "from-[#a16207] to-[#422006]" },
+/**
+ * Avatars are generated low-poly gems: each preset has its own colour and
+ * its own facet pattern, drawn the same way everywhere.
+ */
+const looks: Record<AvatarKey, { color: string; seed: number }> = {
+  spade: { color: "#5ded51", seed: 11 },
+  heart: { color: "#ef5a57", seed: 23 },
+  diamond: { color: "#4f8ef7", seed: 37 },
+  club: { color: "#2fb57a", seed: 41 },
+  crown: { color: "#f2c94c", seed: 53 },
+  star: { color: "#9b6bf2", seed: 67 },
+  flame: { color: "#f2853a", seed: 71 },
+  bolt: { color: "#e8e15a", seed: 83 },
+  gem: { color: "#3cc9c4", seed: 97 },
+  rocket: { color: "#ec5fa8", seed: 101 },
+  ghost: { color: "#c9cfcb", seed: 113 },
+  cat: { color: "#b38a5e", seed: 127 },
 };
 
+const N = 7;
+
+function gem(key: AvatarKey) {
+  const { color, seed } = looks[key];
+  const rnd = seeded(seed);
+  const turn = rnd() * Math.PI * 2;
+  const ring = (radius: number, offset: number, jitter: number) =>
+    Array.from({ length: N }, (_, i) => {
+      const a = turn + ((i + offset) / N) * Math.PI * 2 + (rnd() - 0.5) * jitter;
+      const r = radius * (1 - rnd() * 0.12);
+      return [50 + r * Math.cos(a), 50 + r * Math.sin(a)] as const;
+    });
+  const outer = ring(58, 0, 0.35); // reaches past the circle; clipped
+  const inner = ring(30, 0.5, 0.5);
+  const centre = [50 + (rnd() - 0.5) * 10, 50 + (rnd() - 0.5) * 10] as const;
+  const tris: (readonly (readonly [number, number])[])[] = [];
+  for (let i = 0; i < N; i++) {
+    const j = (i + 1) % N;
+    tris.push([outer[i], inner[i], outer[j]], [inner[i], outer[j], inner[j]], [centre, inner[i], inner[j]]);
+  }
+  return tris.map((t) => {
+    const cx = (t[0][0] + t[1][0] + t[2][0]) / 3;
+    const cy = (t[0][1] + t[1][1] + t[2][1]) / 3;
+    // Light from the upper left.
+    const light = ((50 - cx) * 0.7 + (50 - cy)) / 70;
+    return {
+      points: t.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" "),
+      fill: shadeHex(color, Math.max(-0.55, Math.min(0.45, light * 0.5 + (rnd() - 0.5) * 0.25))),
+    };
+  });
+}
+
+const cache = new Map<AvatarKey, ReturnType<typeof gem>>();
+
 const sizes = {
-  sm: "size-8 [&>svg]:size-4",
-  md: "size-11 [&>svg]:size-5",
-  lg: "size-16 [&>svg]:size-7",
-  xl: "size-24 [&>svg]:size-11",
+  sm: "size-8",
+  md: "size-11",
+  lg: "size-16",
+  xl: "size-24",
 };
 
 export function Avatar({
@@ -47,18 +71,19 @@ export function Avatar({
   size?: keyof typeof sizes;
   className?: string;
 }) {
-  const { icon: Icon, bg } = avatars[avatar];
+  if (!cache.has(avatar)) cache.set(avatar, gem(avatar));
+  const facets = cache.get(avatar)!;
   return (
     <span
       aria-hidden="true"
-      className={cn(
-        "inline-grid shrink-0 place-items-center rounded-full bg-linear-to-b text-white ring-1 ring-white/20 shadow-card",
-        bg,
-        sizes[size],
-        className,
-      )}
+      className={cn("inline-block shrink-0 overflow-hidden rounded-full ring-1 ring-black/40", sizes[size], className)}
     >
-      <Icon strokeWidth={2.2} />
+      <svg viewBox="0 0 100 100" className="size-full">
+        <rect width="100" height="100" fill={shadeHex(looks[avatar].color, -0.3)} />
+        {facets.map((f, i) => (
+          <polygon key={i} points={f.points} fill={f.fill} stroke={f.fill} strokeWidth={0.5} strokeLinejoin="round" />
+        ))}
+      </svg>
     </span>
   );
 }

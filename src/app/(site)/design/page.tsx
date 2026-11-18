@@ -18,9 +18,9 @@ const swatches = [
   ["felt-800", "bg-felt-800"],
   ["felt-600", "bg-felt-600"],
   ["felt-400", "bg-felt-400"],
-  ["gold-300", "bg-gold-300"],
-  ["gold-500", "bg-gold-500"],
-  ["gold-700", "bg-gold-700"],
+  ["accent-300", "bg-accent-300"],
+  ["accent-500", "bg-accent-500"],
+  ["accent-700", "bg-accent-700"],
   ["cream", "bg-cream"],
   ["mist", "bg-mist"],
   ["danger", "bg-danger"],
@@ -29,7 +29,7 @@ const swatches = [
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="mt-12">
-      <h2 className="text-xs font-semibold tracking-[0.25em] text-gold-400 uppercase">
+      <h2 className="text-xs font-semibold tracking-[0.25em] text-accent-400 uppercase">
         {title}
       </h2>
       <div className="mt-5">{children}</div>
@@ -41,7 +41,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export default function DesignSystemPage() {
   return (
     <Container className="py-14">
-      <h1 className="font-display text-4xl font-bold">Design system</h1>
+      <h1 className="font-display text-4xl font-extrabold tracking-tight">Design system</h1>
       <p className="mt-3 max-w-xl text-mist">
         The reusable tokens and components every page is built from.
       </p>
@@ -50,7 +50,7 @@ export default function DesignSystemPage() {
         <ul className="grid grid-cols-3 gap-3 sm:grid-cols-6">
           {swatches.map(([name, cls]) => (
             <li key={name}>
-              <div className={`${cls} h-14 rounded-xl border border-white/10`} />
+              <div className={`${cls} h-14 rounded-xl border border-ink-600`} />
               <p className="mt-2 font-mono text-xs text-mist">{name}</p>
             </li>
           ))}
@@ -58,7 +58,7 @@ export default function DesignSystemPage() {
       </Section>
 
       <Section title="Typography">
-        <p className="font-display text-5xl font-bold">Playfair Display</p>
+        <p className="font-display text-5xl font-extrabold tracking-tight">Playfair Display</p>
         <p className="mt-3 text-lg">Geist Sans for interface and body text.</p>
         <p className="mt-1 font-mono text-sm text-mist">Geist Mono 1,234,567</p>
       </Section>
@@ -77,13 +77,9 @@ export default function DesignSystemPage() {
 
       <Section title="Badges and chips">
         <div className="flex flex-wrap items-center gap-3">
-          <Badge tone="gold">Gold</Badge>
-          <Badge tone="felt">Felt</Badge>
-          <Badge>Neutral</Badge>
-          <Chip color="gold" className="size-8" />
-          <Chip color="emerald" className="size-8" />
-          <Chip color="navy" className="size-8" />
-          <Chip color="crimson" className="size-8" />
+          <Badge tone="accent">Accent</Badge>
+                    <Badge>Neutral</Badge>
+          <Chip className="size-8" />
         </div>
       </Section>
 

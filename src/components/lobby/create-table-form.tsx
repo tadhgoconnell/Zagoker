@@ -14,7 +14,7 @@ const blindLevels = [
 const stackSizes = [20, 50, 100, 200] as const; // in big blinds
 
 const selectClass =
-  "h-12 w-full rounded-xl border border-white/10 bg-ink-900/70 px-3 text-base text-cream hover:border-white/20 focus:border-gold-400 focus:outline-none";
+  "h-12 w-full rounded-xl border border-ink-600 bg-ink-900/70 px-3 text-base text-cream hover:border-ink-500 focus:border-accent-400 focus:outline-none";
 
 export function CreateTableForm({ chips, onCancel }: { chips: number; onCancel: () => void }) {
   const router = useRouter();
@@ -100,7 +100,7 @@ export function CreateTableForm({ chips, onCancel }: { chips: number; onCancel: 
             <label
               key={o.title}
               className={`cursor-pointer rounded-xl border p-4 transition-colors ${
-                isPrivate === o.value ? "border-gold-400 bg-gold-500/10" : "border-white/10 hover:border-white/20"
+                isPrivate === o.value ? "border-accent-400 bg-accent-500/10" : "border-ink-600 hover:border-ink-500"
               }`}
             >
               <input

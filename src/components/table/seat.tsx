@@ -63,12 +63,12 @@ export function Seat(props: SeatProps) {
             type="button"
             onClick={props.onSit}
             aria-label={`Sit in seat ${props.seatNo + 1}`}
-            className="grid size-12 place-items-center rounded-full border border-dashed border-gold-400/50 bg-ink-900/80 text-gold-300 transition-all hover:scale-110 hover:border-gold-300 hover:bg-ink-800 sm:size-14"
+            className="grid size-12 place-items-center rounded-full border border-dashed border-accent-400/60 bg-ink-900 text-accent-400 transition-colors hover:border-accent-300 hover:bg-ink-800 sm:size-14"
           >
             <Plus className="size-5" />
           </button>
         ) : (
-          <div className="size-10 rounded-full border border-dashed border-white/10 bg-ink-900/50 sm:size-12" />
+          <div className="size-10 rounded-full border border-dashed border-ink-500 bg-ink-900/60 sm:size-12" />
         )}
       </div>
     );
@@ -80,7 +80,7 @@ export function Seat(props: SeatProps) {
   const urgent = countdown !== null && countdown.seconds <= 8;
 
   let label: { text: string; tone: string } | null = null;
-  if (won > 0) label = { text: `+${formatChipsCompact(won)}`, tone: "bg-gold-400 text-ink-950 animate-pop" };
+  if (won > 0) label = { text: `+${formatChipsCompact(won)}`, tone: "bg-accent-400 text-ink-950 animate-pop" };
   else if (player?.folded) label = { text: "Fold", tone: "bg-ink-600 text-mist" };
   else if (player?.allIn && !handOver) label = { text: "All-in", tone: "bg-danger text-white" };
   else if (seat.status === "sitting_out") label = { text: "Away", tone: "bg-ink-600 text-mist" };
@@ -130,8 +130,8 @@ export function Seat(props: SeatProps) {
       <div
         title={`${name} · ${formatChips(stack)} chips`}
         className={cn(
-          "relative flex w-22 items-center gap-1.5 overflow-hidden rounded-full border bg-ink-900/95 py-1 pr-2.5 pl-1 shadow-card transition-all sm:w-32 sm:gap-2 xl:w-36",
-          isTurn ? "animate-turn border-gold-400" : won > 0 ? "border-gold-400 shadow-gold" : "border-white/12",
+          "relative flex w-22 items-center gap-1.5 overflow-hidden rounded-lg border bg-ink-900 py-1 pr-2.5 pl-1 shadow-card transition-all sm:w-32 sm:gap-2 xl:w-36",
+          isTurn ? "animate-turn border-accent-400" : won > 0 ? "border-accent-400" : "border-ink-500",
           (player?.folded || seat.status !== "active") && !won && "opacity-60",
         )}
       >
@@ -145,7 +145,7 @@ export function Seat(props: SeatProps) {
           )}
         </span>
         <span className="min-w-0 flex-1 leading-tight">
-          <span className={cn("block truncate text-[11px] font-semibold sm:text-xs", isMe ? "text-gold-200" : "text-cream")}>
+          <span className={cn("block truncate text-[11px] font-semibold sm:text-xs", isMe ? "text-accent-300" : "text-cream")}>
             {name}
           </span>
           <span className="block text-[11px] font-medium text-mist tabular-nums sm:text-xs">
@@ -155,7 +155,7 @@ export function Seat(props: SeatProps) {
         {countdown && (
           <span
             aria-hidden="true"
-            className={cn("absolute bottom-0 left-0 h-0.5 transition-[width] duration-200 ease-linear", urgent ? "bg-danger" : "bg-gold-400")}
+            className={cn("absolute bottom-0 left-0 h-0.5 transition-[width] duration-200 ease-linear", urgent ? "bg-danger" : "bg-accent-400")}
             style={{ width: `${countdown.fraction * 100}%` }}
           />
         )}
@@ -169,7 +169,7 @@ export function Seat(props: SeatProps) {
             title={b === "D" ? "Dealer" : b === "SB" ? "Small blind" : "Big blind"}
             className={cn(
               "grid h-4 min-w-4 place-items-center rounded-full px-1 text-[9px] font-bold",
-              b === "D" ? "bg-cream text-ink-950" : "bg-felt-600 text-cream",
+              b === "D" ? "bg-cream text-ink-950" : "bg-ink-950 text-mist",
             )}
           >
             {b}
@@ -181,13 +181,13 @@ export function Seat(props: SeatProps) {
           </span>
         )}
         {countdown && isTurn && (
-          <span className={cn("text-[10px] font-semibold tabular-nums", urgent ? "text-danger" : "text-gold-300")}>
+          <span className={cn("text-[10px] font-semibold tabular-nums", urgent ? "text-danger" : "text-accent-300")}>
             {countdown.seconds}s
           </span>
         )}
       </div>
       {props.handName && (
-        <span className="absolute top-full mt-0.5 rounded-full bg-black/60 px-2 py-0.5 text-[10px] whitespace-nowrap text-gold-200">
+        <span className="absolute top-full mt-0.5 rounded-md bg-ink-950/85 px-2 py-0.5 text-[10px] whitespace-nowrap text-accent-300">
           {props.handName}
         </span>
       )}
@@ -200,7 +200,7 @@ export function BetMarker({ x, y, amount }: { x: number; y: number; amount: numb
   return (
     <div
       data-bet
-      className="absolute z-10 flex -translate-x-1/2 -translate-y-1/2 animate-fade-up items-center gap-1 rounded-full bg-black/45 py-0.5 pr-2 pl-1 text-[11px] font-semibold text-cream tabular-nums"
+      className="absolute z-10 flex -translate-x-1/2 -translate-y-1/2 animate-fade-up items-center gap-1 rounded-md bg-ink-950/75 py-0.5 pr-2 pl-1 text-[11px] font-semibold text-cream tabular-nums"
       style={{ left: `${x}%`, top: `${y}%` }}
     >
       <Chip className="size-3.5" />

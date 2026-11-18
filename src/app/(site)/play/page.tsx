@@ -9,7 +9,7 @@ import { formatChips } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Play now" };
 
-const linkClass = "font-medium text-gold-300 hover:text-gold-200";
+const linkClass = "font-medium text-accent-300 hover:text-accent-200";
 
 /** Guest entry: no account needed. */
 export default function PlayPage() {

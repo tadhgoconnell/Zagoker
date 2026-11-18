@@ -5,6 +5,8 @@ import { Chip } from "@/components/ui/chip";
 import type { TableSnapshot } from "@/lib/game/types";
 import { cardParts } from "@/lib/poker/display";
 import { formatChips, formatChipsCompact } from "@/lib/utils";
+import { Facets } from "@/components/ui/facets";
+import { Dealer } from "./dealer";
 import { BetMarker, Seat } from "./seat";
 
 type Props = {
@@ -52,19 +54,25 @@ export function PokerTable({ snapshot, online, deadline, onSit, centerMessage }:
     // landscape. On tablets and desktops the width is capped by the screen
     // height so the whole table fits; phones use the full width instead and
     // the table area scrolls if it must, because seats would overlap otherwise.
-    <div className="mx-auto w-full max-w-md px-11 pt-14 pb-12 sm:px-16 sm:pt-16 sm:pb-14 sm:portrait:max-w-[min(44rem,max(20rem,calc((100dvh-19rem)*0.8)))] landscape:max-w-[min(64rem,max(26rem,calc((100dvh-20rem)*2)))]">
+    <div className="mx-auto w-full max-w-md px-11 pt-10 pb-12 sm:px-16 sm:pt-16 sm:pb-14 sm:portrait:max-w-[min(44rem,max(20rem,calc((100dvh-19rem)*0.8)))] landscape:max-w-[min(64rem,max(26rem,calc((100dvh-20rem)*2)))]">
       <div className="relative w-full portrait:aspect-[4/5] landscape:aspect-[2/1]">
-        {/* Rail and felt */}
-        <div className="absolute inset-0 rounded-[50%] bg-linear-to-b from-ink-600 to-ink-800 shadow-[0_30px_60px_-20px_rgb(0_0_0/0.9)] ring-1 ring-gold-500/30" />
-        <div className="absolute inset-[3.5%] rounded-[50%] bg-[radial-gradient(ellipse_at_50%_35%,var(--color-felt-500),var(--color-felt-800)_60%,var(--color-felt-950))] shadow-[inset_0_0_60px_rgb(0_0_0/0.6)] ring-1 ring-gold-500/40 sm:inset-[4.5%]" />
-        <div className="absolute inset-[11%] rounded-[50%] border border-gold-400/10" />
+        {/* Rail and felt: flat colours, low-poly texture, no gradients. */}
+        <div className="absolute inset-0 rounded-[50%] border border-ink-500 bg-ink-800 shadow-[0_30px_60px_-24px_rgb(0_0_0/0.9)]" />
+        <div className="absolute inset-[3.5%] overflow-hidden rounded-[50%] bg-felt-700 sm:inset-[4.5%]">
+          <Facets seed={hand ? 3 : 5} cols={9} rows={7} strength={0.09} />
+        </div>
+        <div className="absolute inset-[11%] rounded-[50%] border border-accent-400/15" />
 
         {/* Centre: pot, board, result */}
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-[14%] text-center">
+          <Dealer
+            cue={`${snapshot.handNumber}:${hand?.board.length ?? 0}`}
+            className="mb-1 aspect-square w-[22%] max-w-36 min-w-16 portrait:w-[30%]"
+          />
           {hand ? (
             <>
               <div
-                className="flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1 text-xs font-semibold text-gold-200 tabular-nums"
+                className="flex items-center gap-1.5 rounded-md bg-ink-950/70 px-2.5 py-1 text-xs font-semibold text-cream tabular-nums"
                 aria-label={`Pot ${hand.pot}`}
               >
                 <Chip className="size-4" />
@@ -82,7 +90,7 @@ export function PokerTable({ snapshot, online, deadline, onSit, centerMessage }:
                   ) : (
                     <div
                       key={i}
-                      className="h-13 w-9 rounded-md border border-dashed border-white/10 sm:h-17 sm:w-12 sm:rounded-lg"
+                      className="h-13 w-9 rounded-md border border-dashed border-ink-600 sm:h-17 sm:w-12 sm:rounded-lg"
                     />
                   ),
                 )}
@@ -90,7 +98,7 @@ export function PokerTable({ snapshot, online, deadline, onSit, centerMessage }:
               <div className="min-h-9 text-xs sm:text-sm" aria-live="polite" data-result>
                 {hand.result ? (
                   hand.result.pots.map((pot, i) => (
-                    <p key={i} className="animate-fade-up font-semibold text-gold-200">
+                    <p key={i} className="animate-fade-up font-semibold text-accent-200">
                       {pot.winners.map((w) => usernames.get(w.seat) ?? "Player").join(" & ")}{" "}
                       {pot.winners.length > 1 ? "split" : "wins"} {formatChips(pot.amount)}
                       {hand.result!.pots.length > 1 && (i === 0 ? " (main pot)" : " (side pot)")}

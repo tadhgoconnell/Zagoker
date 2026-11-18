@@ -12,9 +12,9 @@ export const metadata: Metadata = { title: "Lobby" };
 export default function LobbyPage() {
   return (
     <Container className="py-10 sm:py-14">
-      <h1 className="font-display text-4xl font-bold">Lobby</h1>
+      <h1 className="font-display text-4xl font-extrabold tracking-tight">Lobby</h1>
       <p className="mt-2 mb-8 text-mist">Join a public table, or create your own and invite friends.</p>
-      <Suspense fallback={<div className="h-64 animate-pulse rounded-2xl bg-white/5" aria-busy="true" />}>
+      <Suspense fallback={<div className="h-64 animate-pulse rounded-xl bg-ink-800" aria-busy="true" />}>
         <Lobby />
       </Suspense>
     </Container>

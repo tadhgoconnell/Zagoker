@@ -1,57 +1,37 @@
-import { Ban, Check } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
-import { Panel } from "@/components/ui/panel";
 import { routes, siteConfig } from "@/config/site";
 
-const never = [
-  "No deposits or withdrawals",
-  "No purchasable chips",
-  "No cryptocurrency",
-  "No cash prizes or rewards",
-];
+const never = ["Deposits or withdrawals", "Chips for sale", "Cryptocurrency", "Cash prizes or rewards"];
 
 export function FreePlay() {
   return (
-    <section className="py-20 sm:py-28">
+    <section className="py-20 sm:py-24">
       <Container>
-        <Panel className="relative overflow-hidden px-6 py-12 sm:px-12">
-          <div className="pointer-events-none absolute -top-24 -right-24 size-72 rounded-full bg-gold-500/10 blur-3xl" />
-          <div className="relative grid items-center gap-10 lg:grid-cols-2">
-            <div>
-              <p className="text-xs font-semibold tracking-[0.25em] text-gold-400 uppercase">
-                Play money only
-              </p>
-              <h2 className="mt-3 font-display text-3xl font-bold text-balance sm:text-4xl">
-                Free to play. Always.
-              </h2>
-              <p className="mt-4 leading-relaxed text-mist">
-                {siteConfig.name} is for entertainment. Chips are virtual, have
-                no monetary value and cannot be exchanged for anything. There is
-                no way to spend real money here.
-              </p>
-              <ButtonLink href={routes.play} size="lg" className="mt-8">
-                Play now
-              </ButtonLink>
-            </div>
-
-            <ul className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-10 rounded-xl border border-ink-600 bg-ink-900 p-8 sm:p-12 lg:grid-cols-2 lg:items-center">
+          <div>
+            <p className="font-mono text-xs tracking-widest text-accent-400 uppercase">Play money only</p>
+            <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">Free to play. Always.</h2>
+            <p className="mt-4 max-w-md leading-relaxed text-mist">
+              {siteConfig.name} is for entertainment. Chips are virtual, have no monetary value and cannot be
+              exchanged for anything.
+            </p>
+            <ButtonLink href={routes.play} size="lg" className="mt-8">
+              Play now
+            </ButtonLink>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-cream">There are no:</p>
+            <ul className="mt-3 divide-y divide-ink-600 border-y border-ink-600">
               {never.map((item) => (
-                <li
-                  key={item}
-                  className="flex items-center gap-3 rounded-xl border border-white/8 bg-ink-900/60 px-4 py-3.5 text-sm"
-                >
-                  <Ban className="size-4 shrink-0 text-danger" />
+                <li key={item} className="flex items-center justify-between py-3.5 text-sm text-mist">
                   {item}
+                  <span className="font-mono text-xs text-slate">none</span>
                 </li>
               ))}
-              <li className="flex items-center gap-3 rounded-xl border border-felt-400/30 bg-felt-700/20 px-4 py-3.5 text-sm sm:col-span-2">
-                <Check className="size-4 shrink-0 text-success" />
-                Free virtual chips to start and every day
-              </li>
             </ul>
           </div>
-        </Panel>
+        </div>
       </Container>
     </section>
   );

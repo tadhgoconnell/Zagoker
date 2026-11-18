@@ -52,7 +52,7 @@ async function Join({ params }: { params: PageProps<"/join/[code]">["params"] })
           ["Buy-in", formatChips(table.buy_in)],
           ["Players", `${table.seated}/${table.max_players}`],
         ].map(([label, value]) => (
-          <div key={label} className="rounded-xl border border-white/8 bg-ink-900/60 px-2 py-3">
+          <div key={label} className="rounded-xl border border-ink-700 bg-ink-900/60 px-2 py-3">
             <dt className="text-xs text-mist">{label}</dt>
             <dd className="mt-1 font-semibold tabular-nums">{value}</dd>
           </div>

@@ -35,14 +35,14 @@ export async function HeaderAuth() {
         <Link
           href={routes.profile}
           title="Your virtual chips"
-          className="flex h-9 items-center gap-1.5 rounded-full border border-gold-500/30 bg-ink-800/70 px-3 text-sm font-semibold text-gold-200 tabular-nums hover:border-gold-400"
+          className="flex h-9 items-center gap-1.5 rounded-lg border border-ink-600 bg-ink-900 px-3 text-sm font-semibold text-cream tabular-nums hover:border-accent-400"
         >
           <Chip className="size-4" />
           {formatChips(user.chips)}
         </Link>
         <Link
           href={routes.profile}
-          className="flex h-9 items-center gap-2 rounded-full pr-3 pl-1 text-sm font-medium text-cream hover:bg-white/5"
+          className="flex h-9 items-center gap-2 rounded-lg pr-3 pl-1 text-sm font-medium text-cream hover:bg-ink-700"
         >
           <Avatar avatar={user.avatar} size="sm" className="size-7" />
           {user.username}
@@ -58,7 +58,7 @@ export async function HeaderAuth() {
             type="submit"
             aria-label="Log out"
             title="Log out"
-            className="grid size-9 place-items-center rounded-full text-mist transition-colors hover:bg-white/5 hover:text-cream"
+            className="grid size-9 place-items-center rounded-lg text-mist transition-colors hover:bg-ink-700 hover:text-cream"
           >
             <LogOut className="size-4" />
           </button>
@@ -69,7 +69,7 @@ export async function HeaderAuth() {
       <Link
         href={routes.profile}
         title="Your virtual chips"
-        className="ml-auto flex h-9 items-center gap-1.5 rounded-full border border-gold-500/30 bg-ink-800/70 px-3 text-sm font-semibold text-gold-200 tabular-nums lg:hidden"
+        className="ml-auto flex h-9 items-center gap-1.5 rounded-lg border border-ink-600 bg-ink-900 px-3 text-sm font-semibold text-cream tabular-nums lg:hidden"
       >
         <Chip className="size-4" />
         {formatChips(user.chips)}
@@ -85,7 +85,7 @@ export async function HeaderAuth() {
 export function HeaderAuthFallback() {
   return (
     <>
-      <div className="hidden h-9 w-44 animate-pulse rounded-full bg-white/5 lg:block" />
+      <div className="hidden h-9 w-44 animate-pulse rounded-lg bg-ink-800 lg:block" />
       <MobileNav user={null} />
     </>
   );

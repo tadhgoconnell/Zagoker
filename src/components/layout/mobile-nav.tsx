@@ -40,7 +40,7 @@ export function MobileNav({ user }: { user: NavUser | null }) {
         aria-expanded={open}
         aria-controls="mobile-menu"
         onClick={() => setOpen((v) => !v)}
-        className="grid size-11 place-items-center rounded-full text-cream transition-colors hover:bg-white/5"
+        className="grid size-11 place-items-center rounded-lg text-cream transition-colors hover:bg-ink-700"
       >
         {open ? <X className="size-6" /> : <Menu className="size-6" />}
       </button>
@@ -50,20 +50,20 @@ export function MobileNav({ user }: { user: NavUser | null }) {
       {open && (
         <div
           id="mobile-menu"
-          className="absolute inset-x-0 top-16 z-40 h-[calc(100dvh-4rem)] animate-fade-up overflow-y-auto border-t border-white/6 bg-ink-950 px-4 py-6"
+          className="absolute inset-x-0 top-16 z-40 h-[calc(100dvh-4rem)] animate-fade-up overflow-y-auto border-t border-ink-700 bg-ink-950 px-4 py-6"
         >
           {user && (
             <Link
               href={routes.profile}
               onClick={close}
-              className="mb-4 flex items-center gap-3 rounded-2xl border border-white/8 bg-ink-800/70 p-4"
+              className="mb-4 flex items-center gap-3 rounded-xl border border-ink-600 bg-ink-900 p-4"
             >
               <Avatar avatar={user.avatar} />
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-semibold text-cream">
                   {user.username}
                 </span>
-                <span className="mt-0.5 flex items-center gap-1.5 text-sm text-gold-200 tabular-nums">
+                <span className="mt-0.5 flex items-center gap-1.5 text-sm text-cream tabular-nums">
                   <Chip className="size-4" />
                   {formatChips(user.chips)}
                 </span>
@@ -76,7 +76,7 @@ export function MobileNav({ user }: { user: NavUser | null }) {
               <Link
                 href={routes.profile}
                 onClick={close}
-                className="rounded-xl px-4 py-3.5 text-lg font-medium text-cream hover:bg-white/5"
+                className="rounded-xl px-4 py-3.5 text-lg font-medium text-cream hover:bg-ink-700"
               >
                 Profile
               </Link>
@@ -86,14 +86,14 @@ export function MobileNav({ user }: { user: NavUser | null }) {
                 key={item.href}
                 href={item.href}
                 onClick={close}
-                className="rounded-xl px-4 py-3.5 text-lg font-medium text-cream hover:bg-white/5"
+                className="rounded-xl px-4 py-3.5 text-lg font-medium text-cream hover:bg-ink-700"
               >
                 {item.label}
               </Link>
             ))}
           </nav>
 
-          <div className="mt-6 flex flex-col gap-3 border-t border-white/6 pt-6">
+          <div className="mt-6 flex flex-col gap-3 border-t border-ink-700 pt-6">
             {user?.isGuest ? (
               <Link
                 href={routes.profile}

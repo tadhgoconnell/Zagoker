@@ -29,7 +29,7 @@ type Profile = {
 export default function PlayerPage(props: PageProps<"/players/[username]">) {
   return (
     <Container className="py-10 sm:py-14">
-      <Suspense fallback={<div className="h-72 animate-pulse rounded-2xl bg-white/5" aria-busy="true" />}>
+      <Suspense fallback={<div className="h-72 animate-pulse rounded-xl bg-ink-800" aria-busy="true" />}>
         <Player params={props.params} />
       </Suspense>
     </Container>
@@ -52,7 +52,7 @@ async function Player({ params }: { params: PageProps<"/players/[username]">["pa
       <Panel className="flex flex-col items-center gap-6 p-6 text-center sm:flex-row sm:p-8 sm:text-left">
         <Avatar avatar={isAvatarKey(data.avatar) ? data.avatar : defaultAvatar} size="xl" />
         <div className="min-w-0 flex-1">
-          <h1 className="truncate font-display text-3xl font-bold sm:text-4xl">{data.username}</h1>
+          <h1 className="truncate font-display text-3xl font-extrabold tracking-tight sm:text-4xl">{data.username}</h1>
           <p className="mt-1 text-sm text-mist">
             Member since {dateFormat.format(new Date(data.created_at))} · Ranked #{data.chip_rank} by chips
           </p>
@@ -62,9 +62,9 @@ async function Player({ params }: { params: PageProps<"/players/[username]">["pa
             </ButtonLink>
           )}
         </div>
-        <div className="rounded-2xl border border-gold-500/30 bg-ink-900/60 px-6 py-4 text-center">
-          <p className="text-xs font-semibold tracking-[0.2em] text-gold-400 uppercase">Virtual chips</p>
-          <p className="mt-1 flex items-center justify-center gap-2 font-display text-3xl font-bold text-gold-200 tabular-nums">
+        <div className="rounded-xl border border-ink-600 bg-ink-950 px-6 py-4 text-center">
+          <p className="text-xs font-semibold tracking-[0.2em] text-accent-400 uppercase">Virtual chips</p>
+          <p className="mt-1 flex items-center justify-center gap-2 font-display text-3xl font-extrabold tracking-tight text-accent-200 tabular-nums">
             <Chip className="size-6" />
             {formatChips(Number(data.chips))}
           </p>

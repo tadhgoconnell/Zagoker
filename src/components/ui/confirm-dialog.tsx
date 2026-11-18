@@ -56,11 +56,11 @@ export function useConfirm() {
         if (e.target === e.currentTarget) finish(false); // click on the backdrop
       }}
       aria-labelledby="confirm-title"
-      className="m-auto w-[min(92vw,26rem)] rounded-2xl border border-white/10 bg-ink-800 p-0 text-cream shadow-panel backdrop:bg-black/70 backdrop:backdrop-blur-sm open:animate-fade-up"
+      className="m-auto w-[min(92vw,26rem)] rounded-xl border border-ink-600 bg-ink-800 p-0 text-cream shadow-panel backdrop:bg-black/70 backdrop:backdrop-blur-sm open:animate-fade-up"
     >
       {options && (
         <div className="p-6">
-          <h2 id="confirm-title" className="font-display text-xl font-bold">
+          <h2 id="confirm-title" className="font-display text-xl font-extrabold tracking-tight">
             {options.title}
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-mist">{options.body}</p>

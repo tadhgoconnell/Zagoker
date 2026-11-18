@@ -5,8 +5,8 @@ import { routes } from "@/config/site";
 export default function NotFound() {
   return (
     <Container className="flex flex-1 flex-col items-center justify-center py-24 text-center">
-      <p className="text-gold-gradient font-display text-7xl font-bold">404</p>
-      <h1 className="mt-4 font-display text-3xl font-bold">
+      <p className="font-display text-8xl font-extrabold tracking-tight text-accent-400">404</p>
+      <h1 className="mt-4 font-display text-3xl font-extrabold tracking-tight">
         This hand was folded
       </h1>
       <p className="mt-3 max-w-md text-mist">

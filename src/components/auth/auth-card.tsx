@@ -16,7 +16,7 @@ export function AuthCard({
     <Container className="flex flex-1 items-center justify-center py-12 sm:py-20">
       <div className="w-full max-w-md animate-fade-up">
         <Panel className="p-6 sm:p-9">
-          <h1 className="font-display text-3xl font-bold">{title}</h1>
+          <h1 className="font-display text-3xl font-extrabold tracking-tight">{title}</h1>
           {subtitle && <p className="mt-2 text-sm text-mist">{subtitle}</p>}
           <div className="mt-7">{children}</div>
         </Panel>

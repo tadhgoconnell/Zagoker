@@ -1,9 +1,9 @@
 "use client";
 
-import { Gift } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Chip } from "@/components/ui/chip";
 import { Panel } from "@/components/ui/panel";
 import { gameConfig } from "@/config/site";
 import { apiCall } from "@/lib/game/client";
@@ -61,9 +61,7 @@ export function DailyBonus({ nextAt }: { nextAt: string | null }) {
 
   return (
     <Panel className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:p-6">
-      <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-gold-500/15 text-gold-300 ring-1 ring-gold-500/30">
-        <Gift className="size-5" />
-      </span>
+      <Chip className="size-10 shrink-0" />
       <div className="min-w-0 flex-1">
         <h2 className="font-semibold">Daily bonus</h2>
         <p className="mt-0.5 text-sm text-mist" aria-live="polite">

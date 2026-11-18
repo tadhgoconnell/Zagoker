@@ -10,7 +10,7 @@ export default function TablePage(props: PageProps<"/table/[id]">) {
     <Suspense
       fallback={
         <div className="flex flex-1 items-center justify-center" aria-busy="true">
-          <div className="size-10 animate-spin rounded-full border-2 border-gold-400/30 border-t-gold-400" />
+          <div className="size-10 animate-spin rounded-full border-2 border-accent-400/30 border-t-accent-400" />
         </div>
       }
     >

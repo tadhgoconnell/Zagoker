@@ -23,10 +23,10 @@ export function Field({ label, name, error, hint, className, ...props }: FieldPr
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy}
         className={cn(
-          "h-12 w-full rounded-xl border bg-ink-900/70 px-4 text-base text-cream placeholder:text-slate transition-colors focus:outline-none focus:ring-2 focus:ring-gold-400/40",
+          "h-12 w-full rounded-xl border bg-ink-900/70 px-4 text-base text-cream placeholder:text-slate transition-colors focus:outline-none focus:ring-2 focus:ring-accent-400/40",
           error
             ? "border-danger/70 focus:border-danger"
-            : "border-white/10 hover:border-white/20 focus:border-gold-400",
+            : "border-ink-600 hover:border-ink-500 focus:border-accent-400",
         )}
         {...props}
       />

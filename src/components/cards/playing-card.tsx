@@ -1,3 +1,4 @@
+import { Facets } from "@/components/ui/facets";
 import { cn } from "@/lib/utils";
 
 export type Suit = "spades" | "hearts" | "diamonds" | "clubs";
@@ -61,16 +62,15 @@ export function PlayingCard({
         role="img"
         aria-label="Face-down card"
         style={style}
-        className={cn(
-          s.card,
-          "relative shrink-0 border border-gold-500/50 bg-ink-800 p-1 shadow-card",
-          className,
-        )}
+        className={cn(s.card, "relative shrink-0 overflow-hidden border border-ink-950 bg-ink-700 shadow-card", className)}
       >
-        <div className="size-full rounded-[inherit] border border-gold-500/30 bg-[repeating-linear-gradient(45deg,var(--color-felt-800)_0_4px,var(--color-felt-900)_4px_8px)]" />
-        <span className="absolute inset-0 grid place-items-center text-gold-400/80">
-          ♠
-        </span>
+        <Facets seed={7} cols={3} rows={4} strength={0.35} />
+        <span className="absolute inset-[3px] rounded-[inherit] border border-accent-400/60" />
+        <svg viewBox="0 0 10 10" className="absolute inset-0 m-auto size-[38%]">
+          <polygon points="5,0.5 9.5,5 5,9.5 0.5,5" fill="#5ded51" />
+          <polygon points="5,0.5 5,5 0.5,5" fill="#9cf493" />
+          <polygon points="5,5 9.5,5 5,9.5" fill="#35a92c" />
+        </svg>
       </div>
     );
   }
@@ -84,7 +84,7 @@ export function PlayingCard({
       style={style}
       className={cn(
         s.card,
-        "relative flex shrink-0 flex-col items-center justify-center bg-linear-to-b from-white to-[#ece7da] leading-none font-bold shadow-card",
+        "relative flex shrink-0 flex-col items-center justify-center border border-black/10 bg-[#f6f7f5] leading-none font-bold shadow-card",
         red ? "text-suit-red" : "text-suit-black",
         className,
       )}

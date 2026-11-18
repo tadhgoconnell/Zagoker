@@ -18,7 +18,7 @@ export default function RegisterPage() {
           {formatChips(gameConfig.startingChips)} free virtual chips to start. No payment, ever.
         </span>
       }
-      footer={<>Already have an account? <Link href={routes.login} className="font-medium text-gold-300 hover:text-gold-200">Log in</Link></>}
+      footer={<>Already have an account? <Link href={routes.login} className="font-medium text-accent-300 hover:text-accent-200">Log in</Link></>}
     >
       <RegisterForm />
     </AuthCard>

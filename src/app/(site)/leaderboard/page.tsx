@@ -1,4 +1,3 @@
-import { Trophy } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
@@ -35,13 +34,11 @@ type Row = {
 export default function LeaderboardPage(props: PageProps<"/leaderboard">) {
   return (
     <Container className="py-10 sm:py-14">
-      <h1 className="flex items-center gap-3 font-display text-4xl font-bold">
-        <Trophy className="size-8 text-gold-400" /> Leaderboard
-      </h1>
+      <h1 className="font-display text-4xl font-extrabold tracking-tight sm:text-5xl">Leaderboard</h1>
       <p className="mt-2 mb-8 text-mist">
         The top 50 players. Chips at a table count towards a player&apos;s total.
       </p>
-      <Suspense fallback={<div className="h-96 animate-pulse rounded-2xl bg-white/5" aria-busy="true" />}>
+      <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-ink-800" aria-busy="true" />}>
         <Board searchParams={props.searchParams} />
       </Suspense>
     </Container>
@@ -75,10 +72,10 @@ async function Board({ searchParams }: { searchParams: PageProps<"/leaderboard">
             href={s.key === "chips" ? routes.leaderboard : `${routes.leaderboard}?sort=${s.key}`}
             aria-current={s.key === sort ? "page" : undefined}
             className={cn(
-              "rounded-full border px-4 py-2 text-sm font-semibold transition-colors",
+              "rounded-lg border px-4 py-2 text-sm font-semibold transition-colors",
               s.key === sort
-                ? "border-gold-400 bg-gold-500/15 text-gold-200"
-                : "border-white/12 text-mist hover:border-white/25 hover:text-cream",
+                ? "border-accent-400 bg-accent-400 text-ink-950"
+                : "border-ink-500 text-mist hover:border-ink-500 hover:text-cream",
             )}
           >
             {s.label}
@@ -97,7 +94,7 @@ async function Board({ searchParams }: { searchParams: PageProps<"/leaderboard">
         <Panel className="overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/8 text-left text-xs tracking-wide text-mist uppercase">
+              <tr className="border-b border-ink-600 text-left font-mono text-xs tracking-wide text-slate uppercase">
                 <th scope="col" className="w-14 py-3 pl-4 font-medium sm:pl-6">#</th>
                 <th scope="col" className="py-3 font-medium">Player</th>
                 <th scope="col" className="py-3 pr-4 text-right font-medium sm:pr-6">{active.column}</th>
@@ -105,18 +102,17 @@ async function Board({ searchParams }: { searchParams: PageProps<"/leaderboard">
                 <th scope="col" className="hidden py-3 pr-6 text-right font-medium md:table-cell">Win rate</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/6">
+            <tbody className="divide-y divide-ink-700">
               {rows.map((r) => {
                 const isMe = me?.username.toLowerCase() === r.username.toLowerCase();
                 return (
-                  <tr key={r.username} className={cn(isMe && "bg-gold-500/8")}>
+                  <tr key={r.username} className={cn(isMe && "bg-accent-400/8")}>
                     <td className="py-3 pl-4 sm:pl-6">
                       <span
                         className={cn(
-                          "grid size-8 place-items-center rounded-full font-display font-bold tabular-nums",
-                          r.rank === 1 ? "bg-gold-400 text-ink-950"
-                            : r.rank === 2 ? "bg-[#c9d1dc] text-ink-950"
-                            : r.rank === 3 ? "bg-[#c08a55] text-ink-950"
+                          "grid size-8 place-items-center rounded-md font-mono text-sm font-semibold tabular-nums",
+                          r.rank === 1 ? "bg-accent-400 text-ink-950"
+                            : r.rank <= 3 ? "border border-accent-400/60 text-accent-300"
                             : "text-mist",
                         )}
                       >
@@ -124,10 +120,10 @@ async function Board({ searchParams }: { searchParams: PageProps<"/leaderboard">
                       </span>
                     </td>
                     <td className="py-3">
-                      <Link href={routes.player(r.username)} className="flex min-w-0 items-center gap-3 hover:text-gold-200">
+                      <Link href={routes.player(r.username)} className="flex min-w-0 items-center gap-3 hover:text-accent-200">
                         <Avatar avatar={isAvatarKey(r.avatar) ? r.avatar : defaultAvatar} size="sm" />
                         <span className="truncate font-semibold">{r.username}</span>
-                        {isMe && <span className="rounded-full bg-gold-500/20 px-2 text-[11px] font-semibold text-gold-200">You</span>}
+                        {isMe && <span className="rounded-md bg-accent-400 px-1.5 text-[11px] font-semibold text-ink-950">You</span>}
                       </Link>
                     </td>
                     <td className="py-3 pr-4 text-right font-semibold tabular-nums sm:pr-6">

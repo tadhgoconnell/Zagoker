@@ -123,7 +123,7 @@ export function TableClient({ tableId, userId }: { tableId: string; userId: stri
   if (status === "gone") {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-4 px-4 text-center">
-        <h1 className="font-display text-3xl font-bold">This table is not available</h1>
+        <h1 className="font-display text-3xl font-extrabold tracking-tight">This table is not available</h1>
         <p className="max-w-sm text-mist">
           It may have been closed, or it is a private table you have not joined. Private tables need the
           host&apos;s invitation link or room code.
@@ -135,7 +135,7 @@ export function TableClient({ tableId, userId }: { tableId: string; userId: stri
   if (!snapshot || !table) {
     return (
       <div className="flex flex-1 items-center justify-center" aria-busy="true">
-        <div className="size-10 animate-spin rounded-full border-2 border-gold-400/30 border-t-gold-400" />
+        <div className="size-10 animate-spin rounded-full border-2 border-accent-400/30 border-t-accent-400" />
       </div>
     );
   }
@@ -193,7 +193,7 @@ export function TableClient({ tableId, userId }: { tableId: string; userId: stri
   // What to show in the middle of the felt between hands.
   const centerMessage = (
     <div className="flex flex-col items-center gap-3">
-      <p className="font-display text-lg font-bold text-cream sm:text-2xl">
+      <p className="font-display text-lg font-extrabold tracking-tight text-cream sm:text-2xl">
         {ready < 2 ? "Waiting for players" : gameStarted || !table.is_private ? "Dealing…" : "Ready to play"}
       </p>
       <p className="text-xs text-cream/70 sm:text-sm">
@@ -206,7 +206,7 @@ export function TableClient({ tableId, userId }: { tableId: string; userId: stri
             Start game
           </Button>
         ) : (
-          <p className="text-xs text-gold-200">Waiting for the host to start the game</p>
+          <p className="text-xs text-accent-300">Waiting for the host to start the game</p>
         )
       )}
     </div>
@@ -276,10 +276,10 @@ export function TableClient({ tableId, userId }: { tableId: string; userId: stri
       {dialog}
 
       {/* Top bar */}
-      <div className="flex items-center gap-2 border-b border-white/6 bg-ink-900/60 px-3 py-2 sm:gap-3 sm:px-5">
+      <div className="flex items-center gap-2 border-b border-ink-700 bg-ink-950 px-3 py-2 sm:gap-3 sm:px-5">
         <div className="min-w-0 flex-1">
           <h1 className="flex items-center gap-1.5 truncate text-sm font-semibold sm:text-base">
-            {table.is_private && <Lock className="size-3.5 shrink-0 text-gold-400" aria-label="Private table" />}
+            {table.is_private && <Lock className="size-3.5 shrink-0 text-accent-400" aria-label="Private table" />}
             <span className="truncate">{table.name}</span>
           </h1>
           <p className="truncate text-xs text-mist">
@@ -303,7 +303,7 @@ export function TableClient({ tableId, userId }: { tableId: string; userId: stri
           type="button"
           onClick={() => copy("code")}
           title="Copy room code"
-          className="hidden h-9 items-center gap-1.5 rounded-full border border-white/12 px-3 font-mono text-xs tracking-widest text-cream hover:border-gold-400 sm:flex"
+          className="hidden h-9 items-center gap-1.5 rounded-lg border border-ink-600 px-3 font-mono text-xs tracking-widest text-cream hover:border-accent-400 sm:flex"
         >
           {copied === "code" ? <Check className="size-3.5 text-success" /> : <Copy className="size-3.5" />}
           {table.room_code}
@@ -323,7 +323,7 @@ export function TableClient({ tableId, userId }: { tableId: string; userId: stri
           aria-label={unread ? "Chat and hand history (new messages)" : "Chat and hand history"}
         >
           <MessageSquare className="size-4" />
-          {unread && <span className="absolute top-1.5 right-2 size-2 rounded-full bg-gold-400" />}
+          {unread && <span className="absolute top-1.5 right-2 size-2 rounded-full bg-accent-400" />}
         </Button>
         {isHost && (
           <Button variant="ghost" size="sm" disabled={busy} onClick={closeTable} className="px-3" aria-label="Close table">
@@ -356,12 +356,12 @@ export function TableClient({ tableId, userId }: { tableId: string; userId: stri
         </div>
         <aside
           className={cn(
-            "w-80 max-w-full shrink-0 flex-col border-l border-white/6 bg-ink-900/95 lg:flex lg:bg-ink-900/40",
+            "w-80 max-w-full shrink-0 flex-col border-l border-ink-700 bg-ink-950 lg:flex",
             panelOpen ? "absolute inset-y-0 right-0 z-30 flex" : "hidden",
           )}
           aria-label="Chat and hand history"
         >
-          <div className="flex items-center border-b border-white/6" role="tablist">
+          <div className="flex items-center border-b border-ink-700" role="tablist">
             {(["chat", "history"] as const).map((t) => (
               <button
                 key={t}
@@ -371,7 +371,7 @@ export function TableClient({ tableId, userId }: { tableId: string; userId: stri
                 onClick={() => setTab(t)}
                 className={cn(
                   "flex-1 border-b-2 px-4 py-2.5 text-sm font-semibold transition-colors",
-                  tab === t ? "border-gold-400 text-cream" : "border-transparent text-slate hover:text-mist",
+                  tab === t ? "border-accent-400 text-cream" : "border-transparent text-slate hover:text-mist",
                 )}
               >
                 {t === "chat" ? "Chat" : "Hand history"}
@@ -400,7 +400,7 @@ export function TableClient({ tableId, userId }: { tableId: string; userId: stri
             role={notice.tone === "error" ? "alert" : "status"}
             className={cn(
               "absolute top-3 left-1/2 z-40 w-[min(92%,28rem)] -translate-x-1/2 animate-fade-up rounded-xl border bg-ink-900 px-4 py-3 text-center text-sm shadow-panel",
-              notice.tone === "error" ? "border-danger/40 text-[#ffb4b6]" : "border-gold-500/40 text-gold-200",
+              notice.tone === "error" ? "border-danger/40 text-[#ffb4b6]" : "border-accent-400/60 text-accent-300",
             )}
           >
             {notice.text}
@@ -409,7 +409,7 @@ export function TableClient({ tableId, userId }: { tableId: string; userId: stri
       </div>
 
       {/* Controls */}
-      <div className="flex min-h-28 flex-col justify-center border-t border-white/6 bg-ink-900/80 px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-5">
+      <div className="flex min-h-28 flex-col justify-center border-t border-ink-700 bg-ink-950 px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-5">
         {controls}
       </div>
     </div>

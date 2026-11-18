@@ -5,7 +5,7 @@ import { mainNav, siteConfig } from "@/config/site";
 
 export function SiteFooter() {
   return (
-    <footer className="mt-auto border-t border-white/6 bg-ink-950">
+    <footer className="mt-auto border-t border-ink-700 bg-ink-950">
       <Container className="flex flex-col gap-8 py-10 md:flex-row md:items-start md:justify-between">
         <div className="max-w-sm">
           <Logo />
@@ -27,8 +27,7 @@ export function SiteFooter() {
           ))}
         </nav>
       </Container>
-      <div className="hairline-gold opacity-40" />
-      <Container className="py-5 text-xs text-slate">
+      <Container className="border-t border-ink-700 py-5 text-xs text-slate">
         Play-money poker for fun. No real-money gambling.
       </Container>
     </footer>

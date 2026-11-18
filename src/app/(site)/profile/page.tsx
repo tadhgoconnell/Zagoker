@@ -97,7 +97,7 @@ async function Profile({
       <Panel className="flex flex-col items-center gap-6 p-6 text-center sm:flex-row sm:p-8 sm:text-left">
         <Avatar avatar={user.avatar} size="xl" />
         <div className="min-w-0 flex-1">
-          <h1 className="truncate font-display text-3xl font-bold sm:text-4xl">
+          <h1 className="truncate font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
             {user.username}
           </h1>
           <p className="mt-1 text-sm text-mist">
@@ -105,11 +105,11 @@ async function Profile({
             {user.isGuest ? " · Guest" : user.email && <> · {user.email}</>}
           </p>
         </div>
-        <div className="rounded-2xl border border-gold-500/30 bg-ink-900/60 px-6 py-4 text-center">
-          <p className="text-xs font-semibold tracking-[0.2em] text-gold-400 uppercase">
+        <div className="rounded-xl border border-ink-600 bg-ink-950 px-6 py-4 text-center">
+          <p className="text-xs font-semibold tracking-[0.2em] text-accent-400 uppercase">
             Virtual chips
           </p>
-          <p className="mt-1 flex items-center justify-center gap-2 font-display text-3xl font-bold text-gold-200 tabular-nums">
+          <p className="mt-1 flex items-center justify-center gap-2 font-display text-3xl font-extrabold tracking-tight text-accent-200 tabular-nums">
             <Chip className="size-6" />
             {formatChips(user.chips)}
           </p>
@@ -117,7 +117,7 @@ async function Profile({
       </Panel>
 
       {user.isGuest && (
-        <Panel className="border-gold-500/40 p-6 sm:p-8">
+        <Panel className="border-accent-500/40 p-6 sm:p-8">
           <h2 className="text-lg font-semibold">Save your account</h2>
           <p className="mt-1 mb-5 max-w-xl text-sm text-mist">
             You are playing as a guest. Your name, chips and statistics are kept only in this browser:
@@ -131,9 +131,9 @@ async function Profile({
       )}
 
       {seat && (
-        <Panel className="flex flex-col items-start gap-3 border-gold-500/40 p-5 sm:flex-row sm:items-center sm:justify-between">
+        <Panel className="flex flex-col items-start gap-3 border-accent-500/40 p-5 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm">
-            <span className="font-semibold text-gold-200">
+            <span className="font-semibold text-accent-200">
               {formatChips(Number(seat.stack))} more chips are at your table.
             </span>{" "}
             <span className="text-mist">They return to your balance when you leave it.</span>
@@ -173,7 +173,7 @@ async function Profile({
             Your most recent chip changes.
           </p>
           {transactions && transactions.length > 0 ? (
-            <ul className="divide-y divide-white/6">
+            <ul className="divide-y divide-ink-700">
               {transactions.map((t) => {
                 const amount = Number(t.amount);
                 return (
@@ -217,15 +217,15 @@ async function Profile({
 function ProfileSkeleton() {
   return (
     <div className="animate-pulse space-y-6" aria-busy="true" aria-label="Loading profile">
-      <div className="h-40 rounded-2xl bg-white/5" />
+      <div className="h-40 rounded-xl bg-ink-800" />
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="h-24 rounded-2xl bg-white/5" />
+          <div key={i} className="h-24 rounded-xl bg-ink-800" />
         ))}
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="h-64 rounded-2xl bg-white/5" />
-        <div className="h-64 rounded-2xl bg-white/5" />
+        <div className="h-64 rounded-xl bg-ink-800" />
+        <div className="h-64 rounded-xl bg-ink-800" />
       </div>
     </div>
   );

@@ -28,7 +28,7 @@ export function StatCards({ stats }: { stats: PlayerStats | null }) {
       {cards.map((s, i) => (
         <Panel key={s.label} className={i === 4 ? "col-span-2 p-5 lg:col-span-1" : "p-5"}>
           <dt className="text-xs font-medium tracking-wide text-mist uppercase">{s.label}</dt>
-          <dd className="mt-2 font-display text-2xl font-bold tabular-nums">{s.value}</dd>
+          <dd className="mt-2 font-display text-2xl font-extrabold tracking-tight tabular-nums">{s.value}</dd>
         </Panel>
       ))}
     </dl>
