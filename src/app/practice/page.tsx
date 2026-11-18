@@ -19,5 +19,5 @@ export default function PracticePage() {
 
 async function Practice() {
   const user = await getCurrentUser();
-  return <PracticeClient me={{ name: user?.username ?? "You", avatar: user?.avatar ?? "spade" }} />;
+  return <PracticeClient me={{ name: user?.username ?? "You", avatar: user?.avatar ?? "spade", photo: user?.photo ?? null }} />;
 }

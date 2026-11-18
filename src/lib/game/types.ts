@@ -22,7 +22,7 @@ export type SeatInfo = {
   user_id: string;
   stack: number;
   status: "active" | "sitting_out" | "leaving";
-  profiles: { username: string; avatar: AvatarKey } | null;
+  profiles: { username: string; avatar: AvatarKey; avatar_path?: string | null; photo?: string | null } | null;
 };
 
 export type TableSnapshot = {

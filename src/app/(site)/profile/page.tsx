@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { SaveAccountForm } from "@/components/auth/forms";
 import { AvatarPicker } from "@/components/profile/avatar-picker";
+import { PhotoPicker } from "@/components/profile/photo-picker";
 import { DailyBonus } from "@/components/social/daily-bonus";
 import { StatCards } from "@/components/social/stat-cards";
 import { Alert } from "@/components/ui/alert";
@@ -95,7 +96,7 @@ async function Profile({
       )}
 
       <Panel className="flex flex-col items-center gap-6 p-6 text-center sm:flex-row sm:p-8 sm:text-left">
-        <Avatar avatar={user.avatar} size="xl" />
+        <Avatar avatar={user.avatar} photo={user.photo} size="xl" />
         <div className="min-w-0 flex-1">
           <h1 className="truncate font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
             {user.username}
@@ -160,9 +161,12 @@ async function Profile({
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Panel className="p-6 sm:p-8">
-          <h2 className="text-lg font-semibold">Avatar</h2>
-          <p className="mt-1 mb-5 text-sm text-mist">
-            Pick how you appear at the table. Changes save straight away.
+          <h2 className="text-lg font-semibold">Profile picture</h2>
+          <p className="mt-1 mb-5 text-sm text-mist">Use a photo from your camera roll, or take one now.</p>
+          <PhotoPicker userId={user.id} avatar={user.avatar} photo={user.photo} photoPath={user.photoPath} />
+          <h3 className="mt-8 text-sm font-semibold">Or pick a gem</h3>
+          <p className="mt-1 mb-4 text-sm text-mist">
+            {user.photo ? "Shown if you remove your photo." : "Changes save straight away."}
           </p>
           <AvatarPicker current={user.avatar} />
         </Panel>

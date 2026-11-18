@@ -64,13 +64,29 @@ const sizes = {
 
 export function Avatar({
   avatar,
+  photo,
   size = "md",
   className,
 }: {
   avatar: AvatarKey;
+  /** URL of the player's own photo. When set it is shown instead of the gem. */
+  photo?: string | null;
   size?: keyof typeof sizes;
   className?: string;
 }) {
+  if (photo) {
+    return (
+      // Small, already-resized images from Supabase Storage: next/image would add nothing.
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={photo}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        className={cn("inline-block shrink-0 rounded-full bg-ink-700 object-cover ring-1 ring-black/40", sizes[size], className)}
+      />
+    );
+  }
   if (!cache.has(avatar)) cache.set(avatar, gem(avatar));
   const facets = cache.get(avatar)!;
   return (

@@ -669,6 +669,31 @@ describe.skipIf(!ADMIN_URL)("tables, hands and chip settlement (database)", () =
     });
   });
 
+  describe("profile photos", () => {
+    it("a player can point their photo only at a file in their own folder", async () => {
+      const own = `${users.alice}/1700000000000.jpg`;
+      await rpc("alice", "update profiles set avatar_path = $1 where id = $2", [own, users.alice]);
+      expect(await one("select avatar_path from profiles where id=$1", [users.alice])).toBe(own);
+      // Someone else's folder, a path escape, an odd file type: refused by the database.
+      for (const bad of [`${users.bob}/1.jpg`, `${users.alice}/../x.jpg`, `${users.alice}/a.svg`, `x/${users.alice}/a.jpg`]) {
+        await expect(rpc("alice", "update profiles set avatar_path = $1 where id = $2", [bad, users.alice])).rejects.toThrow(/check constraint/);
+      }
+      // Another player's profile cannot be changed at all (no row matches).
+      await rpc("alice", "update profiles set avatar_path = null where id = $1", [users.bob]);
+      await rpc("alice", "update profiles set avatar_path = null where id = $1", [users.alice]);
+      expect(await one("select avatar_path from profiles where id=$1", [users.alice])).toBeNull();
+    });
+
+    it("rankings and public profiles include the photo", async () => {
+      await pool.query("update profiles set avatar_path = $1 where id = $2", [`${users.carol}/9.jpg`, users.carol]);
+      const [row] = await rpc(null, "select avatar_path from get_player_profile('carol')");
+      expect(row.avatar_path).toBe(`${users.carol}/9.jpg`);
+      const board = await rpc(null, "select username, avatar_path from get_leaderboard('chips', 10)");
+      expect(board.find((r) => r.username === "carol")?.avatar_path).toBe(`${users.carol}/9.jpg`);
+      await pool.query("update profiles set avatar_path = null");
+    });
+  });
+
   describe("many random hands", () => {
     it("300 hands with joins and leaves never create or lose a chip", async () => {
       await reset();

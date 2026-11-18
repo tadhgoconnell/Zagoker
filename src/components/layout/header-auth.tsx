@@ -44,7 +44,7 @@ export async function HeaderAuth() {
           href={routes.profile}
           className="flex h-9 items-center gap-2 rounded-lg pr-3 pl-1 text-sm font-medium text-cream hover:bg-ink-700"
         >
-          <Avatar avatar={user.avatar} size="sm" className="size-7" />
+          <Avatar avatar={user.avatar} photo={user.photo} size="sm" className="size-7" />
           {user.username}
         </Link>
         {user.isGuest ? (
@@ -75,7 +75,7 @@ export async function HeaderAuth() {
         {formatChips(user.chips)}
       </Link>
       <MobileNav
-        user={{ username: user.username, avatar: user.avatar, chips: user.chips, isGuest: user.isGuest }}
+        user={{ username: user.username, avatar: user.avatar, photo: user.photo, chips: user.chips, isGuest: user.isGuest }}
       />
     </>
   );

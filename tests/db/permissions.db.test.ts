@@ -69,7 +69,7 @@ describe.skipIf(!ADMIN_URL)("database permission audit", () => {
     expect(
       await rows(`select grantee, table_name, column_name, privilege_type from information_schema.column_privileges
                    where grantee in ('anon', 'authenticated') and privilege_type <> 'SELECT' order by 1, 2, 3`),
-    ).toEqual(["authenticated profiles avatar UPDATE"]);
+    ).toEqual(["authenticated profiles avatar UPDATE", "authenticated profiles avatar_path UPDATE"]);
   });
 
   it("clients can call exactly the intended functions", async () => {

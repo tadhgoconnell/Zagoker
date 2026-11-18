@@ -11,6 +11,7 @@ import { defaultAvatar, isAvatarKey } from "@/config/avatars";
 import { routes } from "@/config/site";
 import { getCurrentUser } from "@/lib/auth/session";
 import { isSupabaseConfigured } from "@/lib/env";
+import { photoUrl } from "@/lib/photos";
 import { createClient } from "@/lib/supabase/server";
 import { cn, formatChips } from "@/lib/utils";
 
@@ -27,7 +28,7 @@ const sorts = [
 type SortKey = (typeof sorts)[number]["key"];
 
 type Row = {
-  rank: number; username: string; avatar: string; chips: number;
+  rank: number; username: string; avatar: string; avatar_path: string | null; chips: number;
   hands_played: number; hands_won: number; total_won: number; biggest_pot: number;
 };
 
@@ -121,7 +122,7 @@ async function Board({ searchParams }: { searchParams: PageProps<"/leaderboard">
                     </td>
                     <td className="py-3">
                       <Link href={routes.player(r.username)} className="flex min-w-0 items-center gap-3 hover:text-accent-200">
-                        <Avatar avatar={isAvatarKey(r.avatar) ? r.avatar : defaultAvatar} size="sm" />
+                        <Avatar avatar={isAvatarKey(r.avatar) ? r.avatar : defaultAvatar} photo={photoUrl(r.avatar_path)} size="sm" />
                         <span className="truncate font-semibold">{r.username}</span>
                         {isMe && <span className="rounded-md bg-accent-400 px-1.5 text-[11px] font-semibold text-ink-950">You</span>}
                       </Link>

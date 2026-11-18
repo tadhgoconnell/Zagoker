@@ -13,6 +13,7 @@ import { routes } from "@/config/site";
 import { getCurrentUser } from "@/lib/auth/session";
 import { usernamePattern } from "@/lib/auth/schemas";
 import { isSupabaseConfigured } from "@/lib/env";
+import { photoUrl } from "@/lib/photos";
 import { createClient } from "@/lib/supabase/server";
 import { formatChips } from "@/lib/utils";
 
@@ -21,7 +22,7 @@ export const metadata: Metadata = { title: "Player" };
 const dateFormat = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" });
 
 type Profile = {
-  username: string; avatar: string; chips: number; created_at: string;
+  username: string; avatar: string; avatar_path: string | null; chips: number; created_at: string;
   hands_played: number; hands_won: number; total_won: number; biggest_pot: number; chip_rank: number;
 };
 
@@ -50,7 +51,7 @@ async function Player({ params }: { params: PageProps<"/players/[username]">["pa
   return (
     <div className="animate-fade-up space-y-6">
       <Panel className="flex flex-col items-center gap-6 p-6 text-center sm:flex-row sm:p-8 sm:text-left">
-        <Avatar avatar={isAvatarKey(data.avatar) ? data.avatar : defaultAvatar} size="xl" />
+        <Avatar avatar={isAvatarKey(data.avatar) ? data.avatar : defaultAvatar} photo={photoUrl(data.avatar_path)} size="xl" />
         <div className="min-w-0 flex-1">
           <h1 className="truncate font-display text-3xl font-extrabold tracking-tight sm:text-4xl">{data.username}</h1>
           <p className="mt-1 text-sm text-mist">

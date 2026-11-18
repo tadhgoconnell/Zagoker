@@ -5,6 +5,7 @@ import { cache } from "react";
 import { isAvatarKey, defaultAvatar, type AvatarKey } from "@/config/avatars";
 import { routes } from "@/config/site";
 import { isSupabaseConfigured } from "@/lib/env";
+import { photoUrl } from "@/lib/photos";
 import { createClient } from "@/lib/supabase/server";
 
 export type CurrentUser = {
@@ -14,6 +15,10 @@ export type CurrentUser = {
   isGuest: boolean;
   username: string;
   avatar: AvatarKey;
+  /** URL of the player's uploaded photo, if they have one. */
+  photo: string | null;
+  /** Storage path of that photo (to replace or remove it). */
+  photoPath: string | null;
   chips: number;
   createdAt: string;
 };
@@ -38,7 +43,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("username, avatar, chips, created_at")
+    .select("username, avatar, avatar_path, chips, created_at")
     .eq("id", user.id)
     .maybeSingle();
   if (!profile) return null;
@@ -49,6 +54,8 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
     isGuest: user.is_anonymous === true,
     username: profile.username,
     avatar: isAvatarKey(profile.avatar) ? profile.avatar : defaultAvatar,
+    photo: photoUrl(profile.avatar_path),
+    photoPath: profile.avatar_path ?? null,
     chips: Number(profile.chips),
     createdAt: profile.created_at,
   };

@@ -11,7 +11,7 @@ import { mainNav, routes } from "@/config/site";
 import { logoutAction } from "@/lib/auth/actions";
 import { formatChips } from "@/lib/utils";
 
-type NavUser = { username: string; avatar: AvatarKey; chips: number; isGuest: boolean };
+type NavUser = { username: string; avatar: AvatarKey; photo: string | null; chips: number; isGuest: boolean };
 
 export function MobileNav({ user }: { user: NavUser | null }) {
   const [open, setOpen] = useState(false);
@@ -58,7 +58,7 @@ export function MobileNav({ user }: { user: NavUser | null }) {
               onClick={close}
               className="mb-4 flex items-center gap-3 rounded-xl border border-ink-600 bg-ink-900 p-4"
             >
-              <Avatar avatar={user.avatar} />
+              <Avatar avatar={user.avatar} photo={user.photo} />
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-semibold text-cream">
                   {user.username}

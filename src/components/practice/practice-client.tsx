@@ -31,7 +31,7 @@ const blindLevels = [[5, 10], [10, 20], [25, 50], [50, 100]] as const;
 const stacks = [50, 100, 200] as const; // big blinds
 
 type Config = { bots: number; difficulty: number; level: number; stackBb: number };
-type Player = { seat: number; name: string; avatar: AvatarKey; stack: number; bot: number | null };
+type Player = { seat: number; name: string; avatar: AvatarKey; photo?: string | null; stack: number; bot: number | null };
 type Game = {
   config: Config;
   players: Player[];
@@ -41,7 +41,7 @@ type Game = {
   over: null | "won" | "lost";
 };
 
-export function PracticeClient({ me }: { me: { name: string; avatar: AvatarKey } }) {
+export function PracticeClient({ me }: { me: { name: string; avatar: AvatarKey; photo: string | null } }) {
   const [config, setConfig] = useState<Config>({ bots: 3, difficulty: 5, level: 1, stackBb: 100 });
   const [game, setGame] = useState<Game | null>(null);
   const [tab, setTab] = useState<"history" | "players">("players");
@@ -50,7 +50,7 @@ export function PracticeClient({ me }: { me: { name: string; avatar: AvatarKey }
     const [, bb] = blindLevels[config.level];
     const stack = bb * config.stackBb;
     const players: Player[] = [
-      { seat: ME, name: me.name, avatar: me.avatar, stack, bot: null },
+      { seat: ME, name: me.name, avatar: me.avatar, photo: me.photo, stack, bot: null },
       ...Array.from({ length: config.bots }, (_, i) => ({
         seat: i + 1,
         name: botName(i + 1),
@@ -131,7 +131,7 @@ export function PracticeClient({ me }: { me: { name: string; avatar: AvatarKey }
       user_id: `p${p.seat}`,
       stack: p.stack,
       status: "active",
-      profiles: { username: p.name, avatar: p.avatar },
+      profiles: { username: p.name, avatar: p.avatar, photo: p.photo ?? null },
     }));
     return {
       table: {

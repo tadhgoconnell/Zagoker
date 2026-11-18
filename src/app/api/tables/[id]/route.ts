@@ -22,7 +22,7 @@ export function GET(request: NextRequest, ctx: RouteContext<"/api/tables/[id]">)
     const [seats, state] = await Promise.all([
       supabase
         .from("table_seats")
-        .select("seat_no, user_id, stack, status, profiles(username, avatar)")
+        .select("seat_no, user_id, stack, status, profiles(username, avatar, avatar_path)")
         .eq("table_id", tableId)
         .order("seat_no"),
       supabase

@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { PlayingCard } from "@/components/cards/playing-card";
 import { Avatar } from "@/components/ui/avatar";
+import { photoUrl } from "@/lib/photos";
 import { Chip } from "@/components/ui/chip";
 import type { SeatInfo } from "@/lib/game/types";
 import { TURN_SECONDS } from "@/lib/game/timing";
@@ -136,7 +137,12 @@ export function Seat(props: SeatProps) {
         )}
       >
         <span className="relative shrink-0">
-          <Avatar avatar={seat.profiles?.avatar ?? "spade"} size="sm" className="size-7 sm:size-9" />
+          <Avatar
+            avatar={seat.profiles?.avatar ?? "spade"}
+            photo={seat.profiles?.photo ?? photoUrl(seat.profiles?.avatar_path)}
+            size="sm"
+            className="size-7 sm:size-9"
+          />
           {props.online === false && (
             <span
               title="Disconnected"

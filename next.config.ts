@@ -14,9 +14,11 @@ import type { NextConfig } from "next";
 function contentSecurityPolicy(): string {
   const supabase = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
   let connect = "'self'";
+  let images = "'self' data: blob:";
   try {
     const host = new URL(supabase).host;
     connect += ` https://${host} wss://${host}`;
+    images += ` https://${host}`; // profile photos in Supabase Storage
   } catch {
     // Not configured yet: same-origin only.
   }
@@ -24,7 +26,7 @@ function contentSecurityPolicy(): string {
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline'",
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob:",
+    `img-src ${images}`,
     "font-src 'self'",
     `connect-src ${connect}`,
     "frame-ancestors 'none'",
