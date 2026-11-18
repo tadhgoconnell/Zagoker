@@ -187,14 +187,26 @@ const shot = async (page, name) => SHOTS && page.screenshot({ path: `${SHOTS}/${
   // --- Betting through the UI -------------------------------------------------------
   let first = await waitActor();
   check(!!first && (await Promise.all(players.map(canAct))).filter(Boolean).length === 1, "exactly one player has action buttons");
-  await first.page.getByRole("button", { name: "Pot", exact: true }).click();
-  const raiseBtn = first.page.getByRole("button", { name: /^Raise to/ });
-  const raiseText = await raiseBtn.textContent();
+  // Build the raise from chips (blinds 50/100: chips of 50, 100, 250, 500, 1,000).
+  const fp = first.page;
+  const raiseBtn = fp.getByRole("button", { name: /^Raise/ });
+  check(await raiseBtn.isDisabled(), "with no chips selected the raise button is disabled");
+  await fp.getByRole("button", { name: "Add 50", exact: true }).click();
+  await fp.getByText("Add 150 more (minimum 200)").waitFor({ timeout: 5000 });
+  check(await raiseBtn.isDisabled(), "50 alone is below the minimum raise: the button stays disabled and says how much more is needed");
+  await fp.getByRole("button", { name: "Remove 50" }).click();
+  await fp.getByText("Tap chips to build your bet.").waitFor({ timeout: 5000 });
+  check(true, "tapping a chip in the pile takes it back");
+  await fp.getByRole("button", { name: "Add 250", exact: true }).click();
+  await fp.getByRole("button", { name: "Add 100", exact: true }).click();
+  const raiseText = (await raiseBtn.textContent()).trim();
+  check(raiseText === "Raise to 350", "tapping the 250 and 100 chips makes a raise to 350", raiseText);
   // Double click: the second click must not cause a second action or an error.
   await raiseBtn.dblclick();
   const others = players.filter((p) => p !== first);
   await Promise.all(others.map((p) => p.page.locator("aside ol li", { hasText: "raises to" }).first().waitFor({ state: "attached", timeout: 10000 })));
-  check(true, "a pot-sized raise appears on the other screens", raiseText);
+  check(true, "the chip raise appears on the other screens", raiseText);
+  check((await others[0].page.locator("aside ol li", { hasText: "raises to 350" }).count()) === 1, "the other screens show exactly 350");
   check((await others[0].page.locator("aside ol li", { hasText: "raises to" }).count()) === 1, "a double click is applied once");
   await sleep(800);
   check((await first.page.locator("div[role=alert].rounded-xl").count()) === 0, "no error is shown for the duplicate click");

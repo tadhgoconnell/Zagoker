@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { chipBet, chipDenominations, chipsFor } from "@/lib/game/bet-chips";
 import type { HandView, PlayerAction } from "@/lib/poker";
-import { formatChips } from "@/lib/utils";
+import { cn, formatChips } from "@/lib/utils";
+import { ChipFace } from "./chip-token";
 
 type Props = {
   hand: HandView;
@@ -13,86 +15,119 @@ type Props = {
 };
 
 /**
- * The player's controls on their turn. The options and limits come from the
- * server (hand.legalActions); the server validates again when the action is
- * sent, so nothing here is trusted.
+ * The player's controls on their turn. Bets are built from chips: tap chips
+ * to add them, tap a chip in your pile to take it back. The options and
+ * limits come from the server (hand.legalActions), and the server checks the
+ * final amount again, so nothing here is trusted.
  */
 export function ActionBar({ hand, mySeat, disabled, onAction }: Props) {
   const legal = hand.legalActions!;
   const me = hand.players.find((p) => p.seat === mySeat)!;
   const raise = legal.raise;
-  const [amount, setAmount] = useState(raise?.min ?? 0);
+  const denominations = chipDenominations(hand.smallBlind);
+  const [pile, setPile] = useState<number[]>([]);
 
-  const clamp = (n: number) => (raise ? Math.min(raise.max, Math.max(raise.min, Math.round(n))) : 0);
-  // "Pot" means: call first, then raise by the size of the pot after calling.
-  const potAfterCall = hand.pot + legal.callAmount;
-  const allPresets = raise
-    ? [
-        { label: "Min", value: raise.min },
-        { label: "½ pot", value: clamp(hand.currentBet + potAfterCall / 2) },
-        { label: "Pot", value: clamp(hand.currentBet + potAfterCall) },
-        { label: "All-in", value: raise.max },
-      ]
-    : [];
-  // Drop presets that come out the same as an earlier one (e.g. ½ pot = min).
-  const presets = allPresets.filter((p, i) => allPresets.findIndex((q) => q.value === p.value) === i);
-
-  const isAllIn = raise !== null && amount === raise.max;
-  const raiseLabel = !raise
-    ? ""
-    : isAllIn
-      ? `All-in ${formatChips(raise.max)}`
-      : raise.type === "bet"
-        ? `Bet ${formatChips(amount)}`
-        : `Raise to ${formatChips(amount)}`;
+  const selected = pile.reduce((a, b) => a + b, 0);
+  const bet = chipBet(selected, me.streetBet, me.stack, legal);
+  const room = me.stack - selected; // chips still available to add
   const callIsAllIn = legal.callAmount > 0 && legal.callAmount === me.stack;
 
+  const add = (value: number) => setPile((p) => [...p, value].sort((a, b) => b - a));
+  const removeAt = (i: number) => setPile((p) => p.filter((_, j) => j !== i));
+  const setTo = (chipsIn: number) => setPile(chipsFor(chipsIn, denominations));
+
+  let betLabel = "";
+  if (raise) {
+    const word = raise.type === "bet" ? "Bet" : "Raise to";
+    if (bet.kind === "empty") betLabel = raise.type === "bet" ? "Bet" : "Raise";
+    else if (bet.kind === "allin") betLabel = `All-in ${formatChips(bet.target)}`;
+    else if (bet.kind === "short") betLabel = `${word} ${formatChips(bet.target)}`;
+    else betLabel = `${word} ${formatChips(bet.target)}`;
+  }
+  const canBet = bet.kind === "bet" || bet.kind === "raise" || bet.kind === "allin";
+
+  const send = () => {
+    if (bet.kind === "allin") onAction({ type: "allin" });
+    else if (bet.kind === "bet" || bet.kind === "raise") onAction({ type: bet.kind, amount: bet.target });
+  };
+
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-3">
-      {raise && raise.max > raise.min && (
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          <div className="flex min-w-0 gap-1 sm:gap-1.5">
-            {presets.map((p) => (
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-2.5">
+      {raise && (
+        <>
+          {/* Chips to tap */}
+          <div className="flex items-center gap-1.5 sm:gap-2" role="group" aria-label="Add chips to your bet">
+            {denominations.map((d) => (
               <button
-                key={p.label}
+                key={d}
                 type="button"
-                disabled={disabled}
-                onClick={() => setAmount(p.value)}
-                className={`h-9 shrink-0 rounded-lg border px-2.5 text-xs font-semibold transition-colors sm:px-3 ${
-                  amount === p.value
-                    ? "border-accent-400 bg-accent-400 text-ink-950"
-                    : "border-ink-600 text-mist hover:border-ink-500 hover:text-cream"
-                }`}
+                disabled={disabled || d > room}
+                onClick={() => add(d)}
+                aria-label={`Add ${formatChips(d)}`}
+                className="rounded-full transition-transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-30"
               >
-                {p.label}
+                <ChipFace value={d} className="size-9 min-[380px]:size-10 sm:size-11" />
               </button>
             ))}
+            <div className="ml-auto flex gap-1.5">
+              <button
+                type="button"
+                disabled={disabled}
+                onClick={() => setTo(raise.min - me.streetBet)}
+                className="h-9 rounded-lg border border-ink-600 px-2.5 text-xs font-semibold text-mist hover:border-ink-500 hover:text-cream"
+              >
+                Min
+              </button>
+              <button
+                type="button"
+                disabled={disabled}
+                onClick={() => setTo(me.stack)}
+                className="h-9 rounded-lg border border-ink-600 px-2.5 text-xs font-semibold text-mist hover:border-ink-500 hover:text-cream"
+              >
+                All-in
+              </button>
+            </div>
           </div>
-          <input
-            type="range"
-            aria-label="Bet amount"
-            min={raise.min}
-            max={raise.max}
-            step={Math.max(1, hand.smallBlind)}
-            value={amount}
-            disabled={disabled}
-            onChange={(e) => setAmount(clamp(Number(e.target.value)))}
-            // Phones have the presets and the number box; the slider needs more room.
-            className="hidden h-9 min-w-24 flex-1 accent-accent-400 sm:block"
-          />
-          <input
-            type="number"
-            inputMode="numeric"
-            aria-label="Bet amount in chips"
-            min={raise.min}
-            max={raise.max}
-            value={amount}
-            disabled={disabled}
-            onChange={(e) => setAmount(Number(e.target.value) || 0)}
-            onBlur={() => setAmount(clamp(amount))}
-            className="ml-auto h-9 w-20 min-w-0 rounded-lg border sm:ml-0 sm:w-24 border-ink-600 bg-ink-900 px-3 text-right text-sm font-semibold text-cream tabular-nums focus:border-accent-400 focus:outline-none"
-          />
-        </div>
+
+          {/* The pile being built */}
+          <div className="flex h-8 items-center gap-2" aria-live="polite">
+            {pile.length === 0 ? (
+              <p className="text-xs text-slate">Tap chips to build your bet.</p>
+            ) : (
+              <>
+                <div className="flex min-w-0 items-center overflow-hidden">
+                  {pile.slice(0, 14).map((v, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => removeAt(i)}
+                      aria-label={`Remove ${formatChips(v)}`}
+                      className={cn("shrink-0 rounded-full", i > 0 && "-ml-2")}
+                    >
+                      <ChipFace value={v} className="size-7" />
+                    </button>
+                  ))}
+                  {pile.length > 14 && <span className="ml-1 text-xs text-mist">+{pile.length - 14}</span>}
+                </div>
+                <span className="text-sm font-semibold text-cream tabular-nums" data-chip-total>
+                  {formatChips(selected)}
+                </span>
+                {bet.kind === "short" && (
+                  <span className="truncate text-xs text-mist">
+                    Add {formatChips(bet.missing)} more (minimum {formatChips(bet.min)})
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setPile([])}
+                  className="ml-auto shrink-0 text-xs font-semibold text-mist hover:text-cream"
+                >
+                  Clear
+                </button>
+              </>
+            )}
+          </div>
+        </>
       )}
 
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
@@ -109,13 +144,8 @@ export function ActionBar({ hand, mySeat, disabled, onAction }: Props) {
           </Button>
         )}
         {raise ? (
-          <Button
-            size="lg"
-            disabled={disabled || amount < raise.min || amount > raise.max}
-            onClick={() => onAction(isAllIn ? { type: "allin" } : { type: raise.type, amount })}
-            className="px-2"
-          >
-            {raiseLabel}
+          <Button size="lg" disabled={disabled || !canBet} onClick={send} className="px-2">
+            {betLabel}
           </Button>
         ) : (
           <span className="grid place-items-center text-center text-xs text-slate">No raise available</span>
