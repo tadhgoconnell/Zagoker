@@ -26,7 +26,7 @@ export function ActionBar({ hand, mySeat, disabled, onAction }: Props) {
   const clamp = (n: number) => (raise ? Math.min(raise.max, Math.max(raise.min, Math.round(n))) : 0);
   // "Pot" means: call first, then raise by the size of the pot after calling.
   const potAfterCall = hand.pot + legal.callAmount;
-  const presets = raise
+  const allPresets = raise
     ? [
         { label: "Min", value: raise.min },
         { label: "½ pot", value: clamp(hand.currentBet + potAfterCall / 2) },
@@ -34,6 +34,8 @@ export function ActionBar({ hand, mySeat, disabled, onAction }: Props) {
         { label: "All-in", value: raise.max },
       ]
     : [];
+  // Drop presets that come out the same as an earlier one (e.g. ½ pot = min).
+  const presets = allPresets.filter((p, i) => allPresets.findIndex((q) => q.value === p.value) === i);
 
   const isAllIn = raise !== null && amount === raise.max;
   const raiseLabel = !raise

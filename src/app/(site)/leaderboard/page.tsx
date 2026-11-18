@@ -1,6 +1,7 @@
 import { Trophy } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { winRate } from "@/components/social/stat-cards";
 import { Avatar } from "@/components/ui/avatar";
@@ -48,6 +49,8 @@ export default function LeaderboardPage(props: PageProps<"/leaderboard">) {
 }
 
 async function Board({ searchParams }: { searchParams: PageProps<"/leaderboard">["searchParams"] }) {
+  // Rankings change all the time: always render for the incoming request.
+  await connection();
   const requested = (await searchParams).sort;
   const sort: SortKey = sorts.find((s) => s.key === requested)?.key ?? "chips";
   const active = sorts.find((s) => s.key === sort)!;

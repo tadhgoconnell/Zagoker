@@ -43,7 +43,6 @@ const shot = async (page, name) => SHOTS && page.screenshot({ path: `${SHOTS}/${
     const ctx = await browser.newContext({ viewport: viewports[tag], ignoreHTTPSErrors: !!process.env.BROWSER_PROXY });
     const page = await ctx.newPage();
     page.on("pageerror", (e) => errors.push(`${tag}: ${e.message}`));
-    page.on("dialog", (d) => d.accept().catch(() => {})); // confirm "leave the table?"
     await page.goto(`${BASE}/register`);
     await page.fill("[name=username]", u.username);
     await page.fill("[name=email]", u.email);
@@ -53,9 +52,16 @@ const shot = async (page, name) => SHOTS && page.screenshot({ path: `${SHOTS}/${
     players.push({ ...u, ctx, page });
   }
   const [A, B, C] = players;
+  globalThis.__players = players;
   const chipsOf = async (p) => Number((await sb.from("profiles").select("chips").eq("username", p.username).single()).data.chips);
 
   // Next.js keeps the previous page in the DOM, hidden, so only match visible elements.
+  /** Clicks Leave and, if the "fold this hand?" dialog appears, confirms it. */
+  async function leaveTable(page) {
+    await page.locator("button[aria-label='Leave table']:visible").click();
+    const yes = page.getByRole("button", { name: "Yes, leave" });
+    if (await yes.waitFor({ timeout: 1500 }).then(() => true, () => false)) await yes.click();
+  }
   const seatOf = (page, name) => page.locator("[data-seat]:visible", { hasText: name });
   const resultShown = (page) => page.locator("[data-result] p.font-semibold:visible").first().isVisible();
   const handNo = async (page) => Number(await page.locator("[data-hand-number]:visible").getAttribute("data-hand-number"));
@@ -74,6 +80,9 @@ const shot = async (page, name) => SHOTS && page.screenshot({ path: `${SHOTS}/${
   /** The side panel opens on Chat; these checks read the hand history tab. */
   const showHistory = async (page) => {
     const tab = page.locator("[role=tab]:visible", { hasText: "Hand history" });
+    const toggle = page.locator("button[aria-label^='Chat and hand history']:visible");
+    // Wait for the table to finish loading: one of the two is then on screen.
+    await tab.or(toggle).first().waitFor({ timeout: 20000 });
     if ((await tab.count()) === 0) {
       await page.locator("button[aria-label^='Chat and hand history']:visible").click();
       await tab.click();
@@ -259,7 +268,6 @@ const shot = async (page, name) => SHOTS && page.screenshot({ path: `${SHOTS}/${
 
   // --- Coming back ---------------------------------------------------------------------------
   C.page = await C.ctx.newPage();
-  C.page.on("dialog", (d) => d.accept().catch(() => {}));
   await C.page.goto(tableUrl);
   await C.page.getByRole("button", { name: "I'm back" }).click({ timeout: 20000 });
   await seatOf(A.page, C.username).getByText("Away").waitFor({ state: "detached", timeout: 15000 });
@@ -269,7 +277,7 @@ const shot = async (page, name) => SHOTS && page.screenshot({ path: `${SHOTS}/${
   check(true, "the returning player is dealt into the following hand");
 
   // --- Leaving -------------------------------------------------------------------------------------
-  await B.page.getByRole("button", { name: "Leave table" }).click();
+  await leaveTable(B.page);
   await playOut(A).catch(() => {});
   await B.page.waitForURL("**/lobby", { timeout: 40000 }).catch(async () => {
     // Left mid-hand: the seat is released when the hand ends.
@@ -295,7 +303,7 @@ const shot = async (page, name) => SHOTS && page.screenshot({ path: `${SHOTS}/${
 
   // The others leave the private table, then one joins the public one from the lobby.
   for (const p of [C, A]) {
-    await p.page.getByRole("button", { name: "Leave table" }).click();
+    await leaveTable(p.page);
     await playOut(p === C ? A : C).catch(() => {});
     await p.page.waitForURL("**/lobby", { timeout: 45000 }).catch(() => p.page.goto(`${BASE}/lobby`));
   }
@@ -311,11 +319,14 @@ const shot = async (page, name) => SHOTS && page.screenshot({ path: `${SHOTS}/${
   check(true, "at a public table the first hand starts by itself once two players sit down");
   await shot(C.page, "table-public");
 
-  // --- Everyone cashes out; chips add up -----------------------------------------------------------
-  for (const p of [B, C]) {
-    await p.page.getByRole("button", { name: "Leave table" }).click();
-    await sleep(500);
-  }
+  // --- The host closes the table in the middle of a hand ---------------------------------------------
+  await B.page.locator("button[aria-label='Close table']:visible").click();
+  await B.page.getByText("The hand in progress is cancelled").waitFor({ timeout: 5000 });
+  check(true, "the host can close the table mid-hand, with a clear warning");
+  await B.page.getByRole("dialog").getByRole("button", { name: "Close table" }).click();
+  await B.page.waitForURL("**/lobby", { timeout: 20000 });
+  await C.page.getByText("This table is not available").waitFor({ timeout: 20000 });
+  check(true, "the other player's screen shows the table has closed");
   let total = 0;
   for (let i = 0; i < 40; i++) {
     total = (await Promise.all(players.map(chipsOf))).reduce((x, y) => x + y, 0);
@@ -332,4 +343,9 @@ const shot = async (page, name) => SHOTS && page.screenshot({ path: `${SHOTS}/${
   console.log(failed ? `\n${failed} CHECK(S) FAILED` : "\nALL CHECKS PASSED");
   await browser.close();
   process.exit(failed ? 1 : 0);
-})().catch((e) => { console.error(e); process.exit(1); });
+})().catch(async (e) => {
+  console.error(e);
+  // Leave a picture of every screen to show what went wrong.
+  if (SHOTS) for (const [i, p] of (globalThis.__players ?? []).entries()) await p.page.screenshot({ path: `${SHOTS}/failure-${i}.png` }).catch(() => {});
+  process.exit(1);
+});

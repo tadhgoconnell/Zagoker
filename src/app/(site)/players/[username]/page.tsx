@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { StatCards } from "@/components/social/stat-cards";
 import { Avatar } from "@/components/ui/avatar";
@@ -36,6 +37,8 @@ export default function PlayerPage(props: PageProps<"/players/[username]">) {
 }
 
 async function Player({ params }: { params: PageProps<"/players/[username]">["params"] }) {
+  // Rankings change all the time: always render for the incoming request.
+  await connection();
   const username = decodeURIComponent((await params).username);
   if (!usernamePattern.test(username) || !isSupabaseConfigured()) notFound();
 

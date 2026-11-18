@@ -216,6 +216,16 @@ export async function resolveAbsent(tableId: string): Promise<void> {
 }
 
 /**
+ * Host control: cancels the hand in progress, if any, so the table can be
+ * closed at any moment. Bets were never taken from seat stacks, so cancelling
+ * returns every chip to where it was when the hand began.
+ */
+export async function cancelHandForClose(tableId: string): Promise<void> {
+  const data = await loadTable(tableId);
+  if (data?.hand) await abortHand(data.hand.id);
+}
+
+/**
  * The hand as this particular user may see it: their own hole cards and, on
  * their turn, their legal actions. Null if no hand is in progress or the user
  * is not in it (they then rely on the public view).

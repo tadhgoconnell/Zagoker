@@ -41,7 +41,7 @@ Legend: [x] built and tested · [ ] not started
 - [x] Scheduled database maintenance (stale hands, long-absent players, idle tables)
 - [x] 39 live multi-browser checks through the UI (`tests/e2e/table.e2e.cjs`)
 
-## Stage 6 — Lobby and social (awaiting approval)
+## Stage 6 — Lobby and social (done)
 - [x] Lobby with live public tables, create and join (built in stage 5)
 - [x] Public player profiles (`/players/NAME`) and own profile with statistics
 - [x] Leaderboard: top 50 by chips, hands won or biggest pot
@@ -53,10 +53,20 @@ Legend: [x] built and tested · [ ] not started
 - [x] `/play`: pick a name and play, no email or password
 - [x] Guests can optionally save their account later with an email and password
 - [x] Tested: entry page, name validation, redirects, clear message when guest sign-in is disabled
-- [ ] Live guest flow (enter, play, save account, log back in): needs "Allow anonymous sign-ins" enabled in Supabase
+- [x] Live guest flow: enter, play, claim bonus, save account, log back in; a friend joins from an invitation link with no account
 
-## Stage 7 — Design and UX polish
-- [ ] Animations, loading/error/empty states, responsive table
+## Stage 7 — Design and user experience (awaiting approval)
+- [x] Header switches to the menu below 1024px (fixes iPad portrait overflow); balance stays visible
+- [x] Table follows screen orientation: tall oval in portrait, wide in landscape; phones use full width
+- [x] Bet markers moved clear of the player's own cards
+- [x] Seats show each player's last action ("Raise 300", "Check"), full name on hover, turn glow, win pop
+- [x] Bet presets no longer duplicate (e.g. ½ pot equal to min)
+- [x] In-app confirm dialogs replace browser pop-ups; info messages no longer shown in red
+- [x] Host can close the table at any time (the hand in progress is cancelled, bets returned)
+- [x] Other players see "table not available" when it closes
+- [x] "Your turn" shown in the browser tab title
+- [x] Error page with retry instead of a blank screen
+- [x] Layout sweep at 6 screen sizes (`tests/e2e/layout.e2e.cjs`): no sideways scrolling, every seat on screen
 
 ## Stage 8 — Testing, security, deployment
 - [ ] Full test pass, permission audit, Vercel deployment guide

@@ -1,10 +1,11 @@
 "use client";
 
-import { Check, Copy, DoorOpen, Link2, Lock, MessageSquare, Wifi, WifiOff, X } from "lucide-react";
+import { Check, Copy, DoorOpen, Link2, Lock, MessageSquare, Power, Wifi, WifiOff, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Button, ButtonLink } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { routes } from "@/config/site";
 import { apiCall } from "@/lib/game/client";
 import { PAUSE_AFTER_FOLD_MS, PAUSE_AFTER_SHOWDOWN_MS } from "@/lib/game/timing";
@@ -20,7 +21,12 @@ export function TableClient({ tableId, userId }: { tableId: string; userId: stri
   const router = useRouter();
   const { snapshot, status, live, online, clockOffset, refresh } = useTable(tableId, userId);
   const [busy, setBusy] = useState(false);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [notice, setNoticeState] = useState<{ text: string; tone: "error" | "info" } | null>(null);
+  const setNotice = useCallback(
+    (text: string | null, tone: "error" | "info" = "error") => setNoticeState(text ? { text, tone } : null),
+    [],
+  );
+  const [dialog, confirm] = useConfirm();
   const [panelOpen, setPanelOpen] = useState(false);
   const [tab, setTab] = useState<"chat" | "history">("chat");
   const chat = useTableChat(tableId);
@@ -40,7 +46,7 @@ export function TableClient({ tableId, userId }: { tableId: string; userId: stri
     if (!notice) return;
     const t = setTimeout(() => setNotice(null), 5000);
     return () => clearTimeout(t);
-  }, [notice]);
+  }, [notice, setNotice]);
 
   /** Runs one API call, shows any error, and resynchronises. */
   const run = useCallback(
@@ -54,7 +60,7 @@ export function TableClient({ tableId, userId }: { tableId: string; userId: stri
       setBusy(false);
       return res;
     },
-    [url, refresh, router],
+    [url, refresh, router, setNotice],
   );
 
   const table = snapshot?.table;
@@ -65,6 +71,18 @@ export function TableClient({ tableId, userId }: { tableId: string; userId: stri
   const ready = snapshot?.seats.filter((s) => s.status === "active" && s.stack > 0).length ?? 0;
   const isHost = table?.owner_id === userId;
   const gameStarted = (snapshot?.handNumber ?? 0) > 0;
+
+  // --- "Your turn" in the browser tab, so it is noticed from another tab. ---
+  const myTurn = handRunning && hand!.toActSeat === mySeat && mySeat !== null;
+  useEffect(() => {
+    if (!myTurn) return;
+    const previous = document.title;
+    document.title = "● Your turn · Zagoker";
+    if ("vibrate" in navigator) navigator.vibrate?.(60);
+    return () => {
+      document.title = previous;
+    };
+  }, [myTurn]);
 
   // --- Turn timer: when the deadline passes, ask the server to enforce it. ---
   const turnKey = handRunning ? `${snapshot!.handNumber}:${hand!.version}` : null;
@@ -132,7 +150,7 @@ export function TableClient({ tableId, userId }: { tableId: string; userId: stri
       setCopied(what);
       setTimeout(() => setCopied(null), 2000);
     } catch {
-      setNotice(`Copy this ${what === "code" ? "code" : "link"}: ${what === "code" ? table.room_code : inviteLink}`);
+      setNotice(`Copy this ${what === "code" ? "code" : "link"}: ${what === "code" ? table.room_code : inviteLink}`, "info");
     }
   };
 
@@ -141,14 +159,33 @@ export function TableClient({ tableId, userId }: { tableId: string; userId: stri
 
   const leave = async () => {
     const inHand = handRunning && hand!.players.some((p) => p.seat === mySeat && !p.folded);
-    if (inHand && !window.confirm("Leave the table? You will fold this hand.")) return;
+    if (
+      inHand &&
+      !(await confirm({
+        title: "Leave the table?",
+        body: "You will fold this hand. Your remaining chips go back to your balance when it ends.",
+        confirmLabel: "Yes, leave",
+        cancelLabel: "Stay",
+        danger: true,
+      }))
+    ) {
+      return;
+    }
     const res = await run("/leave");
     if (res.ok && res.data.result === "left") router.push(routes.lobby);
-    else if (res.ok) setNotice("You will leave the table when this hand ends.");
+    else if (res.ok) setNotice("You will leave the table when this hand ends.", "info");
   };
 
   const closeTable = async () => {
-    if (!window.confirm("Close this table for everyone? All players are cashed out.")) return;
+    const ok = await confirm({
+      title: "Close this table?",
+      body: handRunning
+        ? "The hand in progress is cancelled and every bet is returned. Everyone is cashed out and the table closes."
+        : "Everyone is cashed out and the table closes for good.",
+      confirmLabel: "Close table",
+      danger: true,
+    });
+    if (!ok) return;
     const res = await run("/close");
     if (res.ok) router.push(routes.lobby);
   };
@@ -236,6 +273,8 @@ export function TableClient({ tableId, userId }: { tableId: string; userId: stri
       data-hand-number={snapshot.handNumber}
       data-hand-version={hand?.version ?? -1}
     >
+      {dialog}
+
       {/* Top bar */}
       <div className="flex items-center gap-2 border-b border-white/6 bg-ink-900/60 px-3 py-2 sm:gap-3 sm:px-5">
         <div className="min-w-0 flex-1">
@@ -286,9 +325,10 @@ export function TableClient({ tableId, userId }: { tableId: string; userId: stri
           <MessageSquare className="size-4" />
           {unread && <span className="absolute top-1.5 right-2 size-2 rounded-full bg-gold-400" />}
         </Button>
-        {isHost && !handRunning && (
-          <Button variant="ghost" size="sm" disabled={busy} onClick={closeTable} className="hidden px-3 sm:inline-flex">
-            Close table
+        {isHost && (
+          <Button variant="ghost" size="sm" disabled={busy} onClick={closeTable} className="px-3" aria-label="Close table">
+            <Power className="size-4" />
+            <span className="hidden xl:inline">Close table</span>
           </Button>
         )}
         {mySeat !== null ? (
@@ -357,10 +397,13 @@ export function TableClient({ tableId, userId }: { tableId: string; userId: stri
 
         {notice && (
           <div
-            role="alert"
-            className="absolute top-3 left-1/2 z-40 w-[min(92%,28rem)] -translate-x-1/2 animate-fade-up rounded-xl border border-danger/40 bg-ink-900 px-4 py-3 text-center text-sm text-[#ffb4b6] shadow-panel"
+            role={notice.tone === "error" ? "alert" : "status"}
+            className={cn(
+              "absolute top-3 left-1/2 z-40 w-[min(92%,28rem)] -translate-x-1/2 animate-fade-up rounded-xl border bg-ink-900 px-4 py-3 text-center text-sm shadow-panel",
+              notice.tone === "error" ? "border-danger/40 text-[#ffb4b6]" : "border-gold-500/40 text-gold-200",
+            )}
           >
-            {notice}
+            {notice.text}
           </div>
         )}
       </div>

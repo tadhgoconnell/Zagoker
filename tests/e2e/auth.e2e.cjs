@@ -185,7 +185,11 @@ async function login(page, u, password = u.password) {
     const gp = await g.textContent("main");
     check((await g.textContent("h1")).trim() === guestName && gp.includes("10,000") && gp.includes("Guest"), "the guest has a profile, 10,000 chips and is marked as a guest");
     check(gp.includes("Save your account"), "the guest is offered the option to save their account");
-    await g.waitForSelector('header a:has-text("Save account")');
+    // On a tablet-sized screen the account controls live in the menu.
+  await g.click('button[aria-label="Open menu"]');
+  await g.waitForSelector('#mobile-menu a:has-text("Save account")');
+  check((await g.locator('#mobile-menu button:has-text("Log out")').count()) === 0, "the guest's menu offers 'Save account' and no log-out");
+  await g.click('button[aria-label="Close menu"]');
     check((await g.locator('header button[aria-label="Log out"]').count()) === 0, "a guest is shown 'Save account' instead of a log-out button");
     const lobby = await ctxG.request.get(`${BASE}/api/tables`);
     check(lobby.status() === 200, "a guest can use the game API", lobby.status());
@@ -210,7 +214,8 @@ async function login(page, u, password = u.password) {
     await g.waitForSelector("h1");
     const sp = await g.textContent("main");
     check((await g.textContent("h1")).trim() === guestName && sp.includes("11,000") && !sp.includes("Save your account"), "after saving, the same name and chips are kept and the guest notice is gone");
-    await g.click('header button[aria-label="Log out"]');
+    await g.setViewportSize({ width: 1280, height: 900 });
+  await g.click('header button[aria-label="Log out"]');
     await g.waitForURL(`${BASE}/`);
     await g.goto(`${BASE}/login`);
     await login(g, { ...saved });

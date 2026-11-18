@@ -4,7 +4,7 @@ import { PlayingCard } from "@/components/cards/playing-card";
 import { Chip } from "@/components/ui/chip";
 import type { TableSnapshot } from "@/lib/game/types";
 import { cardParts } from "@/lib/poker/display";
-import { formatChips } from "@/lib/utils";
+import { formatChips, formatChipsCompact } from "@/lib/utils";
 import { BetMarker, Seat } from "./seat";
 
 type Props = {
@@ -21,9 +21,9 @@ type Props = {
  * Seat positions around an ellipse. The viewer's own seat is always at the
  * bottom centre and seat numbers increase clockwise from there.
  */
-function seatPosition(index: number, total: number, radius = 50) {
+function seatPosition(index: number, total: number, rx = 50, ry = 50) {
   const angle = Math.PI / 2 + (index * 2 * Math.PI) / total;
-  return { x: 50 + radius * Math.cos(angle), y: 50 + radius * Math.sin(angle) };
+  return { x: 50 + rx * Math.cos(angle), y: 50 + ry * Math.sin(angle) };
 }
 
 export function PokerTable({ snapshot, online, deadline, onSit, centerMessage }: Props) {
@@ -33,12 +33,27 @@ export function PokerTable({ snapshot, online, deadline, onSit, centerMessage }:
   const handOver = !!hand?.result;
   const usernames = new Map(seats.map((s) => [s.seat_no, s.profiles?.username ?? "Player"]));
 
+  // Each player's latest voluntary action on the current street.
+  const lastActions = new Map<number, string>();
+  for (const a of hand?.actions ?? []) {
+    if (a.street !== hand!.street || a.type === "post_sb" || a.type === "post_bb") continue;
+    const word = a.type[0].toUpperCase() + a.type.slice(1);
+    lastActions.set(
+      a.seat,
+      a.allIn ? "All-in" : a.type === "bet" || a.type === "raise" ? `${word} ${formatChipsCompact(a.streetBet)}` : word,
+    );
+  }
+
   const winnings = hand?.result?.winnings ?? {};
   const shownNames = new Map(hand?.result?.shown.map((s) => [s.seat, s.hand.name]) ?? []);
 
   return (
-    <div className="mx-auto w-full max-w-md px-13 pt-14 pb-12 sm:max-w-[min(64rem,calc((100dvh-21rem)*2))] sm:px-16 sm:pt-16 sm:pb-14">
-      <div className="relative aspect-[4/5] w-full sm:aspect-[2/1]">
+    // Tall oval when the screen is portrait (phones, iPad upright), wide oval in
+    // landscape. On tablets and desktops the width is capped by the screen
+    // height so the whole table fits; phones use the full width instead and
+    // the table area scrolls if it must, because seats would overlap otherwise.
+    <div className="mx-auto w-full max-w-md px-11 pt-14 pb-12 sm:px-16 sm:pt-16 sm:pb-14 sm:portrait:max-w-[min(44rem,max(20rem,calc((100dvh-19rem)*0.8)))] landscape:max-w-[min(64rem,max(26rem,calc((100dvh-20rem)*2)))]">
+      <div className="relative w-full portrait:aspect-[4/5] landscape:aspect-[2/1]">
         {/* Rail and felt */}
         <div className="absolute inset-0 rounded-[50%] bg-linear-to-b from-ink-600 to-ink-800 shadow-[0_30px_60px_-20px_rgb(0_0_0/0.9)] ring-1 ring-gold-500/30" />
         <div className="absolute inset-[3.5%] rounded-[50%] bg-[radial-gradient(ellipse_at_50%_35%,var(--color-felt-500),var(--color-felt-800)_60%,var(--color-felt-950))] shadow-[inset_0_0_60px_rgb(0_0_0/0.6)] ring-1 ring-gold-500/40 sm:inset-[4.5%]" />
@@ -97,7 +112,8 @@ export function PokerTable({ snapshot, online, deadline, onSit, centerMessage }:
           hand.players
             .filter((p) => p.streetBet > 0)
             .map((p) => {
-              const pos = seatPosition((p.seat - anchor + total) % total, total, 31);
+              // Closer to the middle vertically, so the marker clears the cards.
+              const pos = seatPosition((p.seat - anchor + total) % total, total, 33, 25);
               return <BetMarker key={p.seat} x={pos.x} y={pos.y} amount={p.streetBet} />;
             })}
 
@@ -124,6 +140,7 @@ export function PokerTable({ snapshot, online, deadline, onSit, centerMessage }:
               isMe={seatNo === mySeat}
               isTurn={!handOver && hand?.toActSeat === seatNo}
               won={handOver ? (winnings[seatNo] ?? 0) : 0}
+              lastAction={lastActions.get(seatNo) ?? null}
               handName={shownNames.get(seatNo) ?? null}
               badges={badges}
               online={seat && online ? online.has(seat.user_id) : null}

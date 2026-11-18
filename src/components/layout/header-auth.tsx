@@ -16,7 +16,7 @@ export async function HeaderAuth() {
   if (!user) {
     return (
       <>
-        <div className="hidden items-center gap-2 md:flex">
+        <div className="hidden items-center gap-2 lg:flex">
           <ButtonLink href={routes.login} variant="ghost" size="sm">
             Log in
           </ButtonLink>
@@ -31,7 +31,7 @@ export async function HeaderAuth() {
 
   return (
     <>
-      <div className="hidden items-center gap-2 md:flex">
+      <div className="hidden items-center gap-2 lg:flex">
         <Link
           href={routes.profile}
           title="Your virtual chips"
@@ -65,6 +65,15 @@ export async function HeaderAuth() {
         </form>
         )}
       </div>
+      {/* Below desktop width the balance stays visible next to the menu button. */}
+      <Link
+        href={routes.profile}
+        title="Your virtual chips"
+        className="ml-auto flex h-9 items-center gap-1.5 rounded-full border border-gold-500/30 bg-ink-800/70 px-3 text-sm font-semibold text-gold-200 tabular-nums lg:hidden"
+      >
+        <Chip className="size-4" />
+        {formatChips(user.chips)}
+      </Link>
       <MobileNav
         user={{ username: user.username, avatar: user.avatar, chips: user.chips, isGuest: user.isGuest }}
       />
@@ -76,7 +85,7 @@ export async function HeaderAuth() {
 export function HeaderAuthFallback() {
   return (
     <>
-      <div className="hidden h-9 w-44 animate-pulse rounded-full bg-white/5 md:block" />
+      <div className="hidden h-9 w-44 animate-pulse rounded-full bg-white/5 lg:block" />
       <MobileNav user={null} />
     </>
   );

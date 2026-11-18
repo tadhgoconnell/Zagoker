@@ -15,7 +15,7 @@ export function GET(request: NextRequest, ctx: RouteContext<"/api/tables/[id]">)
     const table = unwrap(
       await supabase.from("poker_tables").select("*").eq("id", tableId).maybeSingle(),
     );
-    if (!table) {
+    if (!table || table.status !== "open") {
       throw new GameError("table_not_found", 404, "This table does not exist or has closed.");
     }
 

@@ -24,6 +24,8 @@ export type SeatProps = {
   isTurn: boolean;
   /** Chips won this hand, when the hand is over. */
   won: number;
+  /** What this player last did on the current street, e.g. "Raise 300". */
+  lastAction: string | null;
   /** Name of the shown hand at showdown, e.g. "Pair of Aces". */
   handName: string | null;
   badges: string[];
@@ -78,11 +80,12 @@ export function Seat(props: SeatProps) {
   const urgent = countdown !== null && countdown.seconds <= 8;
 
   let label: { text: string; tone: string } | null = null;
-  if (won > 0) label = { text: `+${formatChipsCompact(won)}`, tone: "bg-gold-400 text-ink-950" };
+  if (won > 0) label = { text: `+${formatChipsCompact(won)}`, tone: "bg-gold-400 text-ink-950 animate-pop" };
   else if (player?.folded) label = { text: "Fold", tone: "bg-ink-600 text-mist" };
   else if (player?.allIn && !handOver) label = { text: "All-in", tone: "bg-danger text-white" };
   else if (seat.status === "sitting_out") label = { text: "Away", tone: "bg-ink-600 text-mist" };
   else if (seat.status === "leaving") label = { text: "Leaving", tone: "bg-ink-600 text-mist" };
+  else if (props.lastAction && !handOver) label = { text: props.lastAction, tone: "bg-ink-700 text-cream animate-pop" };
 
   return (
     <div
@@ -125,9 +128,10 @@ export function Seat(props: SeatProps) {
 
       {/* Name plate */}
       <div
+        title={`${name} · ${formatChips(stack)} chips`}
         className={cn(
-          "relative flex w-22 items-center gap-1.5 overflow-hidden rounded-full border bg-ink-900/95 py-1 pr-2.5 pl-1 shadow-card transition-all sm:w-32 sm:gap-2",
-          isTurn ? "border-gold-400 shadow-gold" : won > 0 ? "border-gold-400" : "border-white/12",
+          "relative flex w-22 items-center gap-1.5 overflow-hidden rounded-full border bg-ink-900/95 py-1 pr-2.5 pl-1 shadow-card transition-all sm:w-32 sm:gap-2 xl:w-36",
+          isTurn ? "animate-turn border-gold-400" : won > 0 ? "border-gold-400 shadow-gold" : "border-white/12",
           (player?.folded || seat.status !== "active") && !won && "opacity-60",
         )}
       >
@@ -195,6 +199,7 @@ export function Seat(props: SeatProps) {
 export function BetMarker({ x, y, amount }: { x: number; y: number; amount: number }) {
   return (
     <div
+      data-bet
       className="absolute z-10 flex -translate-x-1/2 -translate-y-1/2 animate-fade-up items-center gap-1 rounded-full bg-black/45 py-0.5 pr-2 pl-1 text-[11px] font-semibold text-cream tabular-nums"
       style={{ left: `${x}%`, top: `${y}%` }}
     >

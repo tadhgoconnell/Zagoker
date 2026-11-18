@@ -9,9 +9,9 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-white/6 bg-ink-950/80 backdrop-blur-md">
       <Container className="flex h-16 items-center justify-between gap-4">
-        <Logo />
+        <Logo className="shrink-0" />
 
-        <nav aria-label="Main" className="hidden items-center gap-1 md:flex">
+        <nav aria-label="Main" className="hidden items-center gap-1 lg:flex">
           {mainNav.map((item) => (
             <Link
               key={item.href}
