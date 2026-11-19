@@ -62,18 +62,41 @@ const sizes = {
   xl: "size-24",
 };
 
-export function Avatar({
-  avatar,
-  photo,
-  size = "md",
-  className,
-}: {
+export function Avatar({ crowned, ...props }: AvatarProps & { crowned?: boolean }) {
+  if (!crowned) return <AvatarImage {...props} />;
+  return (
+    <span className="relative inline-flex shrink-0" data-crowned>
+      <AvatarImage {...props} />
+      <Crown />
+    </span>
+  );
+}
+
+/** A small gold crown worn at an angle on the top of the picture. */
+function Crown() {
+  return (
+    <svg
+      viewBox="0 0 24 16"
+      aria-hidden="true"
+      className="pointer-events-none absolute -top-[38%] left-1/2 w-[62%] -translate-x-1/2 -rotate-12 drop-shadow-[0_1px_1px_rgb(0_0_0/0.6)]"
+    >
+      <polygon points="2,14 1,4 7,9 12,1 17,9 23,4 22,14" fill="#f2c94c" />
+      <polygon points="12,1 17,9 12,14" fill="#d9a92b" />
+      <polygon points="2,14 22,14 22,16 2,16" fill="#c8961f" />
+      <circle cx="12" cy="10" r="1.6" fill="#5ded51" />
+    </svg>
+  );
+}
+
+type AvatarProps = {
   avatar: AvatarKey;
   /** URL of the player's own photo. When set it is shown instead of the gem. */
   photo?: string | null;
   size?: keyof typeof sizes;
   className?: string;
-}) {
+};
+
+function AvatarImage({ avatar, photo, size = "md", className }: AvatarProps) {
   if (photo) {
     return (
       // Small, already-resized images from Supabase Storage: next/image would add nothing.

@@ -29,13 +29,17 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     await page.getByRole("button", { name: "Difficulty 8" }).click();
     await page.getByRole("button", { name: "4", exact: true }).click();
     const opponents = await page.locator("ul li", { hasText: "Prefect #" }).allInnerTexts();
-    check(opponents.length === 4 && opponents.every((t, i) => t.includes(`Prefect #${i + 1}`)), `${label}: four opponents named Prefect #1 to #4`, opponents.map((t) => t.replace(/\n/g, " – ")).join(", "));
-    check(new Set(opponents.map((t) => t.split("\n")[1])).size === 4, `${label}: each Prefect has a different play style`);
+    check(opponents.length === 4 && opponents.every((t, i) => t.trim() === `Prefect #${i + 1}`), `${label}: four opponents named Prefect #1 to #4 in order`, opponents.join(", "));
     if (SHOTS) await page.screenshot({ path: `${SHOTS}/practice-setup-${label}.png`, fullPage: true });
 
     await page.getByRole("button", { name: "Deal me in" }).click();
     await page.locator("[data-table=practice]").waitFor();
     check((await page.locator("h1", { hasText: "4 bots · difficulty 8" }).count()) === 1, `${label}: the table shows the chosen settings`);
+    if (label === "desktop") {
+      const styles = await page.locator("aside li").allInnerTexts();
+      check(styles.length === 4 && new Set(styles.map((t) => t.split("·")[1]?.split("\n")[0].trim())).size === 4,
+        "the four Prefects were dealt four different styles", styles.map((t) => t.split("\n")[0]).join(", "));
+    }
 
     const handNo = () => page.locator("[data-table=practice]").getAttribute("data-hand-number").then(Number);
     const myCards = page.locator("[data-seat]:visible [role=img]:not([aria-label='Face-down card'])");

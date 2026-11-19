@@ -21,7 +21,7 @@ import {
   type HandState,
   type PlayerAction,
 } from "@/lib/poker";
-import { botName, decideBotAction, styleForBot } from "@/lib/poker/bots";
+import { botName, dealStyles, decideBotAction, type BotStyle } from "@/lib/poker/bots";
 import { browserRandomInt } from "@/lib/poker/browser-random";
 import { cn, formatChips } from "@/lib/utils";
 
@@ -34,6 +34,8 @@ type Config = { bots: number; difficulty: number; level: number; stackBb: number
 type Player = { seat: number; name: string; avatar: AvatarKey; photo?: string | null; stack: number; bot: number | null };
 type Game = {
   config: Config;
+  /** Personality of Prefect #n at index n - 1, dealt at random per game. */
+  styles: BotStyle[];
   players: Player[];
   hand: HandState | null;
   handNumber: number;
@@ -59,7 +61,15 @@ export function PracticeClient({ me }: { me: { name: string; avatar: AvatarKey; 
         bot: i + 1,
       })),
     ];
-    setGame({ config, players, hand: null, handNumber: 0, dealer: null, over: null });
+    setGame({
+      config,
+      styles: dealStyles(config.bots, browserRandomInt),
+      players,
+      hand: null,
+      handNumber: 0,
+      dealer: null,
+      over: null,
+    });
   }, [config, me]);
 
   /** Deals the next hand from the current stacks. */
@@ -104,7 +114,7 @@ export function PracticeClient({ me }: { me: { name: string; avatar: AvatarKey; 
     const t = setTimeout(() => {
       // The bot sees only its own cards and the public table.
       const view = toPlayerView(game.hand!, toAct);
-      const action = decideBotAction(view, toAct, styleForBot(player.bot!), game.config.difficulty, browserRandomInt);
+      const action = decideBotAction(view, toAct, game.styles[player.bot! - 1], game.config.difficulty, browserRandomInt);
       act(toAct, action);
     }, 650 + browserRandomInt(900));
     return () => clearTimeout(t);
@@ -243,7 +253,7 @@ export function PracticeClient({ me }: { me: { name: string; avatar: AvatarKey; 
             {tab === "players" ? (
               <ul className="divide-y divide-ink-700">
                 {Array.from({ length: game.config.bots }, (_, i) => i + 1).map((n) => {
-                  const style = styleForBot(n);
+                  const style = game.styles[n - 1];
                   const p = game.players.find((x) => x.bot === n);
                   return (
                     <li key={n} className={cn("flex gap-3 p-4", !p && "opacity-45")}>
@@ -356,15 +366,16 @@ function Setup({
         </div>
 
         <div>
-          <p className="mb-2 text-sm font-semibold">Your opponents</p>
+          <p className="mb-1 text-sm font-semibold">Your opponents</p>
+          <p className="mb-2 text-xs text-slate">
+            Each Prefect is dealt a different style at random when the cards come out: the Shark, the Maniac, the
+            Rock, the Calling Station, the Trapper, the Bluffer, the Gambler or the Grinder.
+          </p>
           <ul className="grid gap-2 sm:grid-cols-2">
             {Array.from({ length: config.bots }, (_, i) => i + 1).map((n) => (
               <li key={n} className="flex items-center gap-2.5 rounded-lg border border-ink-600 px-3 py-2 text-sm">
                 <Avatar avatar={botAvatars[n - 1]} size="sm" />
-                <span className="min-w-0">
-                  <span className="block font-semibold">{botName(n)}</span>
-                  <span className="block truncate text-xs text-mist">{styleForBot(n).name}</span>
-                </span>
+                <span className="block font-semibold">{botName(n)}</span>
               </li>
             ))}
           </ul>

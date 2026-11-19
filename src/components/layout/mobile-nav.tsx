@@ -9,6 +9,7 @@ import { Chip } from "@/components/ui/chip";
 import type { AvatarKey } from "@/config/avatars";
 import { mainNav, routes } from "@/config/site";
 import { logoutAction } from "@/lib/auth/actions";
+import { crownedNameClass, displayName, isCrowned } from "@/lib/players";
 import { formatChips } from "@/lib/utils";
 
 type NavUser = { username: string; avatar: AvatarKey; photo: string | null; chips: number; isGuest: boolean };
@@ -58,10 +59,10 @@ export function MobileNav({ user }: { user: NavUser | null }) {
               onClick={close}
               className="mb-4 flex items-center gap-3 rounded-xl border border-ink-600 bg-ink-900 p-4"
             >
-              <Avatar avatar={user.avatar} photo={user.photo} />
+              <Avatar avatar={user.avatar} photo={user.photo} crowned={isCrowned(user.username)} />
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-semibold text-cream">
-                  {user.username}
+                  <span className={isCrowned(user.username) ? crownedNameClass : undefined}>{displayName(user.username)}</span>
                 </span>
                 <span className="mt-0.5 flex items-center gap-1.5 text-sm text-cream tabular-nums">
                   <Chip className="size-4" />

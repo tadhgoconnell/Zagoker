@@ -7,6 +7,7 @@ import { Chip } from "@/components/ui/chip";
 import { routes } from "@/config/site";
 import { logoutAction } from "@/lib/auth/actions";
 import { getCurrentUser } from "@/lib/auth/session";
+import { crownedNameClass, displayName, isCrowned } from "@/lib/players";
 import { formatChips } from "@/lib/utils";
 
 /** Right-hand side of the header. Reads the session, so it streams in. */
@@ -44,8 +45,8 @@ export async function HeaderAuth() {
           href={routes.profile}
           className="flex h-9 items-center gap-2 rounded-lg pr-3 pl-1 text-sm font-medium text-cream hover:bg-ink-700"
         >
-          <Avatar avatar={user.avatar} photo={user.photo} size="sm" className="size-7" />
-          {user.username}
+          <Avatar avatar={user.avatar} photo={user.photo} crowned={isCrowned(user.username)} size="sm" className="size-7" />
+          <span className={isCrowned(user.username) ? crownedNameClass : undefined}>{displayName(user.username)}</span>
         </Link>
         {user.isGuest ? (
           // Logging out would abandon a guest's chips, so offer saving instead.

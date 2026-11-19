@@ -10,6 +10,7 @@ import { routes } from "@/config/site";
 import { apiCall } from "@/lib/game/client";
 import { PAUSE_AFTER_FOLD_MS, PAUSE_AFTER_SHOWDOWN_MS } from "@/lib/game/timing";
 import type { PlayerAction } from "@/lib/poker";
+import { displayName } from "@/lib/players";
 import { cn, formatChips } from "@/lib/utils";
 import { ActionBar } from "./action-bar";
 import { HandLog } from "./hand-log";
@@ -141,7 +142,7 @@ export function TableClient({ tableId, userId }: { tableId: string; userId: stri
   }
 
   const nameOf = (seat: number) =>
-    snapshot.seats.find((s) => s.seat_no === seat)?.profiles?.username ?? "Player";
+    displayName(snapshot.seats.find((s) => s.seat_no === seat)?.profiles?.username);
   const inviteLink = `${window.location.origin}/join/${table.room_code}`;
 
   const copy = async (what: "code" | "link") => {

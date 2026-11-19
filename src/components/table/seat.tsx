@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { PlayingCard } from "@/components/cards/playing-card";
 import { Avatar } from "@/components/ui/avatar";
 import { photoUrl } from "@/lib/photos";
+import { crownedNameClass, displayName, isCrowned } from "@/lib/players";
 import { Chip } from "@/components/ui/chip";
 import type { SeatInfo } from "@/lib/game/types";
 import { TURN_SECONDS } from "@/lib/game/timing";
@@ -75,7 +76,8 @@ export function Seat(props: SeatProps) {
     );
   }
 
-  const name = seat.profiles?.username ?? "Player";
+  const name = displayName(seat.profiles?.username);
+  const crowned = isCrowned(seat.profiles?.username);
   const inHand = player !== null && !player.folded;
   const stack = player ? player.stack : seat.stack;
   const urgent = countdown !== null && countdown.seconds <= 8;
@@ -131,7 +133,7 @@ export function Seat(props: SeatProps) {
       <div
         title={`${name} · ${formatChips(stack)} chips`}
         className={cn(
-          "relative flex w-22 items-center gap-1.5 overflow-hidden rounded-lg border bg-ink-900 py-1 pr-2.5 pl-1 shadow-card transition-all sm:w-32 sm:gap-2 xl:w-36",
+          "relative flex w-22 items-center gap-1.5 rounded-lg border bg-ink-900 py-1 pr-2.5 pl-1 shadow-card transition-all sm:w-32 sm:gap-2 xl:w-36",
           isTurn ? "animate-turn border-accent-400" : won > 0 ? "border-accent-400" : "border-ink-500",
           (player?.folded || seat.status !== "active") && !won && "opacity-60",
         )}
@@ -139,6 +141,7 @@ export function Seat(props: SeatProps) {
         <span className="relative shrink-0">
           <Avatar
             avatar={seat.profiles?.avatar ?? "spade"}
+            crowned={crowned}
             photo={seat.profiles?.photo ?? photoUrl(seat.profiles?.avatar_path)}
             size="sm"
             className="size-7 sm:size-9"
@@ -151,7 +154,7 @@ export function Seat(props: SeatProps) {
           )}
         </span>
         <span className="min-w-0 flex-1 leading-tight">
-          <span className={cn("block truncate text-[11px] font-semibold sm:text-xs", isMe ? "text-accent-300" : "text-cream")}>
+          <span className={cn("block truncate text-[11px] font-semibold sm:text-xs", crowned ? crownedNameClass : isMe ? "text-accent-300" : "text-cream")}>
             {name}
           </span>
           <span className="block text-[11px] font-medium text-mist tabular-nums sm:text-xs">
@@ -161,8 +164,9 @@ export function Seat(props: SeatProps) {
         {countdown && (
           <span
             aria-hidden="true"
-            className={cn("absolute bottom-0 left-0 h-0.5 transition-[width] duration-200 ease-linear", urgent ? "bg-danger" : "bg-accent-400")}
-            style={{ width: `${countdown.fraction * 100}%` }}
+            // Inset from the rounded corners, so the plate need not clip (the crown sticks out).
+            className={cn("absolute bottom-0 left-2 h-0.5 rounded-full transition-[width] duration-200 ease-linear", urgent ? "bg-danger" : "bg-accent-400")}
+            style={{ width: `calc((100% - 1rem) * ${countdown.fraction})` }}
           />
         )}
       </div>

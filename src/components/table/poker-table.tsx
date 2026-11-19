@@ -3,6 +3,7 @@
 import { PlayingCard } from "@/components/cards/playing-card";
 import { Chip } from "@/components/ui/chip";
 import type { TableSnapshot } from "@/lib/game/types";
+import { displayName } from "@/lib/players";
 import { cardParts } from "@/lib/poker/display";
 import { formatChips, formatChipsCompact } from "@/lib/utils";
 import { Dragon } from "@/components/ui/dragon";
@@ -34,7 +35,7 @@ export function PokerTable({ snapshot, online, deadline, onSit, centerMessage }:
   const total = table.max_players;
   const anchor = mySeat ?? 0;
   const handOver = !!hand?.result;
-  const usernames = new Map(seats.map((s) => [s.seat_no, s.profiles?.username ?? "Player"]));
+  const usernames = new Map(seats.map((s) => [s.seat_no, displayName(s.profiles?.username)]));
 
   // Each player's latest voluntary action on the current street.
   const lastActions = new Map<number, string>();

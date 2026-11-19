@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { botName, botStyles, decideBotAction, estimateEquity, styleForBot } from "../bots";
+import { botName, botStyles, dealStyles, decideBotAction, estimateEquity, styleForBot } from "../bots";
 import { applyAction, getLegalActions, nextDealerSeat, startHand, toPlayerView, type HandState } from "../engine";
 import { cards, seededRandomInt } from "./helpers";
 
@@ -13,6 +13,22 @@ describe("bot names and styles", () => {
     const keys = [1, 2, 3, 4, 5, 6, 7, 8].map((n) => styleForBot(n).key);
     expect(new Set(keys).size).toBe(8);
     expect(botStyles).toHaveLength(8);
+  });
+});
+
+describe("dealing personalities", () => {
+  it("never gives two bots in one game the same style", () => {
+    for (let n = 1; n <= 8; n++) {
+      for (let g = 0; g < 50; g++) expect(new Set(dealStyles(n, rng).map((s) => s.key)).size).toBe(n);
+    }
+  });
+  it("any style can turn up even with only three bots", () => {
+    const seen = new Map<string, number>();
+    for (let g = 0; g < 4000; g++) for (const s of dealStyles(3, rng)) seen.set(s.key, (seen.get(s.key) ?? 0) + 1);
+    expect(seen.size).toBe(8);
+    // Each style should land in about 3/8 of games.
+    for (const count of seen.values()) expect(Math.abs(count / 4000 - 3 / 8)).toBeLessThan(0.04);
+    expect(seen.get("bluffer")).toBeGreaterThan(0);
   });
 });
 

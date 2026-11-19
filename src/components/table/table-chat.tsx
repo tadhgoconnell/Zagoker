@@ -3,6 +3,7 @@
 import { SendHorizontal } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { apiCall } from "@/lib/game/client";
+import { crownedNameClass, displayName, isCrowned } from "@/lib/players";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -116,8 +117,13 @@ export function TableChat({
         )}
         {messages.map((m) => (
           <li key={m.id} className="break-words">
-            <span className={cn("font-semibold", m.user_id === myId ? "text-accent-300" : "text-cream")}>
-              {m.username}
+            <span
+              className={cn(
+                "font-semibold",
+                isCrowned(m.username) ? crownedNameClass : m.user_id === myId ? "text-accent-300" : "text-cream",
+              )}
+            >
+              {displayName(m.username)}
             </span>{" "}
             <time className="text-[10px] text-slate" dateTime={m.created_at}>
               {timeFormat.format(new Date(m.created_at))}

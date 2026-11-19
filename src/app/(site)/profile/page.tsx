@@ -14,6 +14,7 @@ import { Panel } from "@/components/ui/panel";
 import { gameConfig, routes } from "@/config/site";
 import { requireUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { crownedNameClass, displayName, isCrowned } from "@/lib/players";
 import { formatChips } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Your profile" };
@@ -82,7 +83,7 @@ async function Profile({
     <div className="animate-fade-up space-y-6">
       {params.welcome === "1" && (
         <Alert tone="success">
-          Welcome to the table, {user.username}. Your{" "}
+          Welcome to the table, {displayName(user.username)}. Your{" "}
           {formatChips(gameConfig.startingChips)} free chips have been added.
         </Alert>
       )}
@@ -96,10 +97,10 @@ async function Profile({
       )}
 
       <Panel className="flex flex-col items-center gap-6 p-6 text-center sm:flex-row sm:p-8 sm:text-left">
-        <Avatar avatar={user.avatar} photo={user.photo} size="xl" />
+        <Avatar avatar={user.avatar} photo={user.photo} crowned={isCrowned(user.username)} size="xl" />
         <div className="min-w-0 flex-1">
           <h1 className="truncate font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
-            {user.username}
+            <span className={isCrowned(user.username) ? crownedNameClass : undefined}>{displayName(user.username)}</span>
           </h1>
           <p className="mt-1 text-sm text-mist">
             Member since {dateFormat.format(new Date(user.createdAt))}

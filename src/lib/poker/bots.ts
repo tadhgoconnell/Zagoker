@@ -42,8 +42,22 @@ export const botStyles: readonly BotStyle[] = [
   { key: "grinder", name: "The Grinder", description: "Careful with pot odds; small, steady bets.", looseness: 0.4, aggression: 0.5, bluffing: 0.1, slowPlay: 0.15, shoving: 0.1 },
 ];
 
+/** Bots are named by seat order: the first is always Prefect #1, and so on. */
 export const botName = (n: number) => `Prefect #${n}`;
 export const styleForBot = (n: number) => botStyles[(n - 1) % botStyles.length];
+
+/**
+ * Deals a random personality to each of `count` bots, never the same one
+ * twice in a game (up to the eight there are).
+ */
+export function dealStyles(count: number, randomInt: RandomInt): BotStyle[] {
+  const deck = botStyles.slice();
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = randomInt(i + 1);
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+  return Array.from({ length: count }, (_, i) => deck[i % deck.length]);
+}
 
 /**
  * Chance (0..1) that `hole` wins against `opponents` random hands, given the
