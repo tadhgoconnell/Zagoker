@@ -64,10 +64,13 @@ export function PhotoPicker({
       const small = await squarePhoto(file);
       setPreview(URL.createObjectURL(small));
       const supabase = createClient();
+      // A new name per upload, so a changed photo shows at once everywhere. The
+      // cache time is kept short so a removed photo stops being served within
+      // the hour.
       const path = `${userId}/${Date.now()}.jpg`;
       const up = await supabase.storage
         .from(PHOTO_BUCKET)
-        .upload(path, small, { contentType: "image/jpeg", cacheControl: "31536000", upsert: false });
+        .upload(path, small, { contentType: "image/jpeg", cacheControl: "3600", upsert: false });
       if (up.error) throw new Error(up.error.message);
       const saved = await supabase.from("profiles").update({ avatar_path: path }).eq("id", userId);
       if (saved.error) {

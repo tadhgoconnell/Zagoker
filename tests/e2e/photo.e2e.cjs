@@ -66,6 +66,18 @@ function testPng(w = 1200, h = 800) {
   await page.locator(`main img[src="${src}"]`).waitFor({ timeout: 15000 });
   check(true, "the public profile shows the photo");
 
+  // At a table, the seat shows the photo too.
+  await page.goto(`${BASE}/lobby`);
+  await page.getByRole("button", { name: "Create table" }).click();
+  await page.fill("[name=name]", `Photo ${name.slice(-6)}`);
+  await page.locator("select").nth(2).selectOption("20");
+  await page.getByRole("button", { name: /Create and sit down/ }).click();
+  await page.waitForURL("**/table/*", { timeout: 30000 });
+  await page.locator(`[data-seat] img[src="${src}"]`).first().waitFor({ timeout: 20000 });
+  check(true, "the player's seat at the table shows the photo");
+  await page.locator("button[aria-label='Leave table']:visible").click();
+  await page.waitForURL("**/lobby", { timeout: 20000 });
+
   // Someone else cannot overwrite or delete it.
   const other = await browser.newContext({ ignoreHTTPSErrors: proxied });
   const op = await other.newPage();
@@ -89,7 +101,8 @@ function testPng(w = 1200, h = 800) {
   await page.getByText("Photo removed.").waitFor({ timeout: 20000 });
   await page.reload();
   check((await page.locator("header img").count()) === 0, "removing the photo brings back the gem avatar");
-  const gone = await ctx.request.get(src);
+  // Ask past any cached copy: the stored file itself must be gone.
+  const gone = await ctx.request.get(`${src}?check=${Date.now()}`);
   check(gone.status() >= 400, "the removed file is deleted from storage", gone.status());
 
   check(errors.length === 0, "no browser errors or blocked resources", errors.slice(0, 2).join("; "));
