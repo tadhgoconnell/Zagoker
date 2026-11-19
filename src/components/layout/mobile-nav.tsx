@@ -92,6 +92,13 @@ export function MobileNav({ user }: { user: NavUser | null }) {
                 {item.label}
               </Link>
             ))}
+            <Link
+              href={routes.handRankings}
+              onClick={close}
+              className="rounded-xl px-4 py-3.5 text-lg font-medium text-cream hover:bg-ink-700"
+            >
+              Hand rankings
+            </Link>
           </nav>
 
           <div className="mt-6 flex flex-col gap-3 border-t border-ink-700 pt-6">

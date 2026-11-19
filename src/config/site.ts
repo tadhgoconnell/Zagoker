@@ -34,6 +34,7 @@ export const routes = {
   lobby: "/lobby",
   practice: "/practice",
   leaderboard: "/leaderboard",
+  handRankings: "/hand-rankings",
   player: (username: string) => `/players/${encodeURIComponent(username)}`,
 } as const;
 

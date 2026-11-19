@@ -4,7 +4,7 @@ import { PlayingCard } from "@/components/cards/playing-card";
 import { Chip } from "@/components/ui/chip";
 import type { TableSnapshot } from "@/lib/game/types";
 import { displayName } from "@/lib/players";
-import { cardParts } from "@/lib/poker/display";
+import { cardParts, currentHandName } from "@/lib/poker/display";
 import { formatChips, formatChipsCompact } from "@/lib/utils";
 import { Dragon } from "@/components/ui/dragon";
 import { Facets } from "@/components/ui/facets";
@@ -158,6 +158,11 @@ export function PokerTable({ snapshot, online, deadline, onSit, centerMessage }:
               won={handOver ? (winnings[seatNo] ?? 0) : 0}
               lastAction={lastActions.get(seatNo) ?? null}
               handName={shownNames.get(seatNo) ?? null}
+              liveHand={
+                seatNo === mySeat && player?.holeCards && !player.folded && !handOver
+                  ? currentHandName(player.holeCards, hand!.board)
+                  : null
+              }
               badges={badges}
               online={seat && online ? online.has(seat.user_id) : null}
               deadline={deadline}

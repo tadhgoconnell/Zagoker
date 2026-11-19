@@ -28,6 +28,8 @@ export type SeatProps = {
   won: number;
   /** What this player last did on the current street, e.g. "Raise 300". */
   lastAction: string | null;
+  /** For the viewer's own seat during a hand: what they hold right now. */
+  liveHand?: string | null;
   /** Name of the shown hand at showdown, e.g. "Pair of Aces". */
   handName: string | null;
   badges: string[];
@@ -97,6 +99,16 @@ export function Seat(props: SeatProps) {
       data-seat={props.seatNo}
       data-turn={isTurn || undefined}
     >
+      {/* The viewer's own hand, in words, above their cards. */}
+      {props.liveHand && (
+        <span
+          data-live-hand
+          aria-live="polite"
+          className="mb-1.5 rounded-md bg-ink-950/85 px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap text-accent-300 sm:text-xs"
+        >
+          {props.liveHand}
+        </span>
+      )}
       {/* Hole cards */}
       <div
         className={cn(

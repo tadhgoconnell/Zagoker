@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Container } from "@/components/ui/container";
 import { Logo } from "@/components/ui/logo";
-import { mainNav, siteConfig } from "@/config/site";
+import { mainNav, routes, siteConfig } from "@/config/site";
 
 export function SiteFooter() {
   return (
@@ -25,6 +25,9 @@ export function SiteFooter() {
               {item.label}
             </Link>
           ))}
+          <Link href={routes.handRankings} className="hover:text-cream">
+            Hand rankings
+          </Link>
         </nav>
       </Container>
       <Container className="border-t border-ink-700 py-5 text-xs text-slate">
