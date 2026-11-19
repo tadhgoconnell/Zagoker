@@ -26,6 +26,7 @@ pages before launch; limits change.
    - `20261114000001_realtime_and_timers.sql`
    - `20261115000001_social.sql`
    - `20261118000001_hardening.sql`
+   - `20261120000001_profile_photos.sql` (also creates the `avatars` Storage bucket)
 3. Check the maintenance job exists:
    `select jobname, schedule from cron.job;` should list `zagoker-table-maintenance`
    running every minute. If it does not, enable the **pg_cron** extension
@@ -127,7 +128,7 @@ npm run dev
 | --- | --- |
 | `npm test` | Poker engine (124 tests) |
 | `TEST_DATABASE_URL=postgres://... npm run test:db` | Database rules, chip accounting and the permission audit, on a disposable local Postgres |
-| `BASE_URL=http://localhost:3000 node tests/e2e/<name>.e2e.cjs` | Live browser tests against a running site and a real Supabase project: `auth`, `game`, `social`, `guest-invite`, `table`, `layout`. They create throwaway `zagtest_*` players. |
+| `BASE_URL=http://localhost:3000 node tests/e2e/<name>.e2e.cjs` | Live browser tests against a running site and a real Supabase project: `auth`, `game`, `social`, `guest-invite`, `table`, `layout`, `practice`, `photo` (the photo test also needs `SUPABASE_URL` and `SUPABASE_ANON_KEY`). They create throwaway `zagtest_*` players. |
 
 Remove test players with `supabase/maintenance/delete-test-accounts.sql`.
 

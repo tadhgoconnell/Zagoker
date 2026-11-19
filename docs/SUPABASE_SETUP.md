@@ -11,6 +11,7 @@ One-off steps in the Supabase dashboard for a new project.
    - `20261114000001_realtime_and_timers.sql`
    - `20261115000001_social.sql`
    - `20261118000001_hardening.sql`
+   - `20261120000001_profile_photos.sql`
 
 Each migration is run once. If the Supabase CLI is linked to the project,
 `supabase db push` does the same thing.
