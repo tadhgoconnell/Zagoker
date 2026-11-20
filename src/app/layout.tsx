@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { SiteHeader } from "@/components/layout/site-header";
 import { siteConfig } from "@/config/site";
 import "./globals.css";
@@ -56,6 +57,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <main id="main" className="flex flex-1 flex-col">
           {children}
         </main>
+        <Analytics />
       </body>
     </html>
   );
