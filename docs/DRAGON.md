@@ -47,7 +47,7 @@ Both copies share one pivot and always move together.
 ## Posing
 
 ```tsx
-<Dragon pose={{ wing: { rotate: -25 }, jaw: { rotate: 18 }, torso: { y: -6 } }} />
+<Dragon pose={{ wing: { rotate: -25 }, jaw: { rotate: -18 }, torso: { y: -6 } }} />
 ```
 
 A move is `{ rotate?, scale?, x?, y? }` (degrees clockwise, scale about the
@@ -58,6 +58,21 @@ browser (including Safari on iPad) reads the same way; CSS transform-origin on
 SVG elements is avoided on purpose.
 
 `mirrored` flips the whole drawing with CSS; poses are given as if facing left.
+
+Directions: rotation is clockwise on screen, and the head and jaw stick out to
+the left of their pivots, so a **negative** jaw angle opens the mouth and a
+**positive** head angle lifts the snout. A hanging leg swings backwards
+(towards the tail) with a negative angle.
+
+## Victory animation
+
+`src/components/table/victory/` flies the dragon across the table when the
+viewer wins a pot (their own screen only, about 3 s, practice mode too):
+`timeline.ts` (pure flight path, poses, particles), `victory-overlay.tsx`
+(requestAnimationFrame loop setting part matrices; still dragon with reduced
+motion), `particles.tsx` (coins, notes, cards), `use-victory.ts` (trigger),
+`victory-preview.tsx` (the "Play victory" button on `/design`). It poses the
+unchanged artwork; no filler facets were needed.
 
 ## Joint seams
 

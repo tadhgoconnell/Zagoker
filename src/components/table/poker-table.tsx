@@ -10,6 +10,8 @@ import { Dragon } from "@/components/ui/dragon";
 import { Facets } from "@/components/ui/facets";
 import { Dealer } from "./dealer";
 import { BetMarker, Seat } from "./seat";
+import { VictoryOverlay } from "./victory/victory-overlay";
+import { useVictory } from "./victory/use-victory";
 
 type Props = {
   snapshot: TableSnapshot;
@@ -49,6 +51,12 @@ export function PokerTable({ snapshot, online, deadline, onSit, centerMessage }:
   }
 
   const winnings = hand?.result?.winnings ?? {};
+  // The dragon's victory flight, on the winner's own screen only.
+  const victory = useVictory(
+    snapshot.handNumber,
+    hand ? { finished: handOver } : null,
+    mySeat === null ? 0 : (winnings[mySeat] ?? 0),
+  );
   const shownNames = new Map(hand?.result?.shown.map((s) => [s.seat, s.hand.name]) ?? []);
 
   return (
@@ -171,6 +179,8 @@ export function PokerTable({ snapshot, online, deadline, onSit, centerMessage }:
             />
           );
         })}
+
+        {victory.cue !== null && <VictoryOverlay key={victory.cue} seed={victory.cue} onDone={victory.end} />}
       </div>
     </div>
   );

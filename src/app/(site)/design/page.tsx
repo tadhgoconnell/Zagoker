@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/ui/chip";
 import { Container } from "@/components/ui/container";
 import { Panel } from "@/components/ui/panel";
+import { VictoryPreview } from "@/components/table/victory/victory-preview";
 
 export const metadata: Metadata = {
   title: "Design system",
@@ -94,6 +95,10 @@ export default function DesignSystemPage() {
           <PlayingCard faceDown size="md" />
           <PlayingCard faceDown size="sm" />
         </div>
+      </Section>
+
+      <Section title="Victory animation">
+        <VictoryPreview />
       </Section>
 
       <Section title="Panel">

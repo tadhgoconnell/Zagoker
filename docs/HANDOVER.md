@@ -18,11 +18,8 @@ before touching the dragon.
 - **The original 8-stage build plan is complete** (setup, auth, engine,
   betting, real-time, social, UX, security/deploy). Since then the owner has
   asked for feature additions one at a time (see section 13).
-- **Next planned work:** a 2D **victory animation** in which the dragon flies
-  across the poker table breathing out money, gold coins and playing cards,
-  optimised for iPad. The preparation step is **done** (dragon split into
-  animatable parts with pivots). The animation itself is **not started**.
-  See section 11.
+- **Victory animation: built** (section 11). The dragon flies across the
+  table breathing out coins, notes and cards when *you* win a pot.
 
 ### About the owner (how to work with them)
 
@@ -385,14 +382,16 @@ length).
 
 ### Status
 
-- **Done:** rig with 11 parts, pivots, attachment chain, `pose` prop, matrix
-  posing helpers, tests, docs. Resting dragon unchanged everywhere.
-- **Not done:** everything below. Nothing about triggers, flight, particles or
-  near wing exists yet.
-- **Open questions for the owner** (ask before building): who triggers it (any
-  pot win, showdown wins only, big pots, the viewer's own wins?), whether all
-  players at the table see it, how long it may last, and whether practice
-  mode gets it too.
+**Built** (owner's answers, 20 Nov 2026): plays only on the winner's own
+screen, only for their own pot wins seen live (not when reopening a finished
+hand), once per hand, about 3 s (fits the existing pauses), in practice mode
+too. Reduced motion: a still dragon for 1.6 s instead. Code in
+`src/components/table/victory/`; preview button on `/design`; tests in
+`victory.test.ts` and `tests/e2e/victory.e2e.cjs`. No server/DB change.
+Safari on a real iPad still to be checked by the owner.
+
+**Correction to the guide below:** the jaw opens with a *negative* angle and
+the head lifts with a *positive* one (they point left of their pivots).
 
 ### Recommended design (iPad-first)
 
@@ -430,7 +429,7 @@ length).
    "forward" is to the left): lean forward `torso: { rotate: -15…-25 }`; tuck
    legs (hind legs ±30–50°, forelegs ~-30°); flap `wing` between about -35°
    and +15° at 3–4 Hz with ease-in-out; sway `tail` ±10° with `tailTip`
-   lagging; for the breath raise `head` (≈ -10°) then open `jaw` (+15…25°).
+   lagging; for the breath raise `head` (≈ +8°) then open `jaw` (-15…-25°).
    Pivots: section 7. When flying right, render `mirrored` and remember that
    rotations appear reversed on screen.
 5. **Breath origin:** the mouth is around drawing coords (34–50, 48–52).
@@ -503,5 +502,4 @@ Known limitations:
 - On small phones at 9-seat tables the player's own name plate can sit just
   under the controls (table area scrolls).
 
-Next feature: the victory animation (section 11), after asking the open
-questions.
+Victory animation done (section 11).
