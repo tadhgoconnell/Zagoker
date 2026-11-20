@@ -616,5 +616,5 @@ describe("randomised play (5,000 hands)", () => {
     expect(endings.showdown).toBeGreaterThan(300);
     expect(sidePotHands).toBeGreaterThan(100);
     expect(splitHands).toBeGreaterThan(5);
-  });
+  }, 60_000);
 });

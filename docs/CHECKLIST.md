@@ -77,3 +77,10 @@ Legend: [x] built and tested · [ ] not started
 - [x] Deployment guide (`docs/DEPLOYMENT.md`) and test-account cleanup script
 - [ ] Verify the live Vercel deployment (needs the address)
 - [ ] Owner: run `20261118000001_hardening.sql` in Supabase
+
+## Dragon rig (preparation for a victory animation)
+- [x] Original drawing script preserved in `scripts/dragon/`
+- [x] 142 facets grouped into 11 named parts with pivots, original order kept
+- [x] `<Dragon>` API unchanged; optional `pose` prop for animation
+- [x] Proven unchanged: facet fingerprint test, and pixel comparison of home page, card backs and practice table on phone, iPad (both ways) and desktop
+- [ ] Victory animation (not started)
