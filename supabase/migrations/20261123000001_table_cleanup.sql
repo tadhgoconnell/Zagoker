@@ -18,7 +18,9 @@ create table if not exists private.table_activity (
   last_seen_at timestamptz not null default now()
 );
 alter table private.table_activity enable row level security;
-revoke all on private.table_activity from public, anon, authenticated;
+revoke all on private.table_activity from public;
+revoke all on private.table_activity from anon;
+revoke all on private.table_activity from authenticated;
 
 -- Tables already open start their 30 minutes now, not from when they were
 -- created, so nobody's game is cut short when this file is run.
@@ -123,7 +125,13 @@ begin
 end;
 $$;
 
-revoke all on function public.mark_table_active(uuid) from public, anon, authenticated;
+revoke all on function public.mark_table_active(uuid) from public;
+revoke all on function public.mark_table_active(uuid) from anon;
+revoke all on function public.mark_table_active(uuid) from authenticated;
 grant execute on function public.mark_table_active(uuid) to authenticated;
-revoke all on function private.close_table_now(uuid) from public, anon, authenticated;
-revoke all on function public.table_maintenance() from public, anon, authenticated;
+revoke all on function private.close_table_now(uuid) from public;
+revoke all on function private.close_table_now(uuid) from anon;
+revoke all on function private.close_table_now(uuid) from authenticated;
+revoke all on function public.table_maintenance() from public;
+revoke all on function public.table_maintenance() from anon;
+revoke all on function public.table_maintenance() from authenticated;
