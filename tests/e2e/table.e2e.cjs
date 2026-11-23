@@ -335,10 +335,10 @@ const shot = async (page, name) => SHOTS && page.screenshot({ path: `${SHOTS}/${
   await shot(C.page, "table-public");
 
   // --- The host closes the table in the middle of a hand ---------------------------------------------
-  await B.page.locator("button[aria-label='Close table']:visible").click();
+  await B.page.locator("button[aria-label='Delete table']:visible").click();
   await B.page.getByText("The hand in progress is cancelled").waitFor({ timeout: 5000 });
   check(true, "the host can close the table mid-hand, with a clear warning");
-  await B.page.getByRole("dialog").getByRole("button", { name: "Close table" }).click();
+  await B.page.getByRole("dialog").getByRole("button", { name: "Delete table" }).click();
   await B.page.waitForURL("**/lobby", { timeout: 20000 });
   await C.page.getByText("This table is not available").waitFor({ timeout: 20000 });
   check(true, "the other player's screen shows the table has closed");

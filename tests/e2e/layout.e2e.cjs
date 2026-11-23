@@ -138,8 +138,8 @@ async function guest(browser, opts, name) {
     console.log("SKIP - smallest phone action bar: their turn did not come round");
   }
 
-  await host.page.locator("button[aria-label='Close table']:visible").click();
-  await host.page.getByRole("dialog").getByRole("button", { name: "Close table" }).click();
+  await host.page.locator("button[aria-label='Delete table']:visible").click();
+  await host.page.getByRole("dialog").getByRole("button", { name: "Delete table" }).click();
   console.log(`\nTable: ${tableUrl}`);
   check(csp.length === 0, "the Content Security Policy blocked nothing the site needs", csp.slice(0, 2).join(" | "));
   console.log(failed ? `\n${failed} CHECK(S) FAILED` : "\nALL CHECKS PASSED");

@@ -49,8 +49,8 @@ const check = (ok, l, x = "") => { if (!ok) failed++; console.log(`${ok ? "PASS"
     await friend.screenshot({ path: `${process.env.SCREENSHOT_DIR}/ipad-portrait.png` });
   }
   // The host closes the table: the hand is cancelled and both are cashed out.
-  await host.locator("button[aria-label='Close table']:visible").click();
-  await host.getByRole("dialog").getByRole("button", { name: "Close table" }).click();
+  await host.locator("button[aria-label='Delete table']:visible").click();
+  await host.getByRole("dialog").getByRole("button", { name: "Delete table" }).click();
   await host.waitForURL("**/lobby", { timeout: 20000 });
   check(csp.length === 0, "the Content Security Policy blocked nothing the site needs");
   console.log(failed ? `\n${failed} CHECK(S) FAILED` : "\nALL CHECKS PASSED", `(zagtest_${id}h, zagtest_${id}f)`);

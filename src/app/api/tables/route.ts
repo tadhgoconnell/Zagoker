@@ -22,10 +22,10 @@ export function POST(request: NextRequest) {
   });
 }
 
-/** Open public tables for the lobby, with how many players are seated. */
+/** Open public tables for the lobby, with how many players are seated, plus the tables the caller hosts. */
 export function GET(request: NextRequest) {
   return api(request, async ({ user, supabase }) => {
-    const [tables, mine] = await Promise.all([
+    const [tables, mine, hosted] = await Promise.all([
       supabase
         .from("poker_tables")
         .select("id, name, max_players, small_blind, big_blind, buy_in, hand_number, created_at, table_seats(count)")
@@ -34,13 +34,23 @@ export function GET(request: NextRequest) {
         .order("created_at", { ascending: false })
         .limit(100),
       supabase.from("table_seats").select("table_id").eq("user_id", user.id).maybeSingle(),
+      // Tables the caller hosts, public and private, so they can delete them.
+      supabase
+        .from("poker_tables")
+        .select("id, name, max_players, small_blind, big_blind, buy_in, hand_number, created_at, is_private, room_code, table_seats(count)")
+        .eq("status", "open")
+        .eq("owner_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(20),
     ]);
+    const withCount = <T extends { table_seats: { count: number }[] }>({ table_seats, ...t }: T) => ({
+      ...t,
+      seated: table_seats[0]?.count ?? 0,
+    });
     return {
-      tables: (unwrap(tables) ?? []).map(({ table_seats, ...t }) => ({
-        ...t,
-        seated: table_seats[0]?.count ?? 0,
-      })),
+      tables: (unwrap(tables) ?? []).map(withCount),
       myTableId: unwrap(mine)?.table_id ?? null,
+      hostedTables: (unwrap(hosted) ?? []).map(withCount),
     };
   });
 }

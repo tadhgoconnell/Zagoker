@@ -77,6 +77,20 @@ async function createTable(owner: string, opts: Partial<{ name: string; max: num
 const join = (name: string, tableId: string, seat: number | null = null, code: string | null = null) =>
   rpc(name, "select join_table($1,$2,$3) as seat", [tableId, seat, code]).then((r) => r[0].seat as number);
 
+/**
+ * Pretend a table was created `createdAgo` minutes ago and last had someone
+ * on it `seenAgo` minutes ago (or never, if omitted).
+ */
+async function ageTable(tableId: string, createdAgo: number, seenAgo?: number) {
+  await pool.query("update poker_tables set created_at = now() - make_interval(mins => $2) where id=$1", [tableId, createdAgo]);
+  await pool.query("delete from private.table_activity where table_id=$1", [tableId]);
+  if (seenAgo !== undefined) {
+    await pool.query("insert into private.table_activity values ($1, now() - make_interval(mins => $2))", [tableId, seenAgo]);
+  }
+}
+
+type Maintenance = { aborted_hands: number; removed_seats: number; closed_tables: number };
+
 async function load(tableId: string) {
   const [r] = await server("select game_load($1,$2) as data", [KEY, tableId]);
   return r.data as {
@@ -570,7 +584,7 @@ describe.skipIf(!ADMIN_URL)("tables, hands and chip settlement (database)", () =
       expect(Math.abs(new Date(after.now).getTime() - Date.now())).toBeLessThan(60_000);
     });
 
-    it("maintenance cancels dead hands, removes long-absent players and closes idle tables", async () => {
+    it("maintenance cancels dead hands, removes long-absent players and deletes unused tables", async () => {
       await reset();
       const t = await createTable("alice", { name: "Busy" });
       const idle = await createTable("alice", { name: "Idle" });
@@ -583,10 +597,9 @@ describe.skipIf(!ADMIN_URL)("tables, hands and chip settlement (database)", () =
 
       await pool.query("update private.hands set updated_at = now() - interval '4 minutes' where id=$1", [handId]);
       await pool.query("update table_seats set away_since = now() - interval '16 minutes' where user_id=$1", [users.carol]);
-      await pool.query("alter table poker_tables disable trigger poker_tables_touch_updated_at");
-      await pool.query("update poker_tables set updated_at = now() - interval '2 hours' where id=$1", [idle.id]);
-      await pool.query("alter table poker_tables enable trigger poker_tables_touch_updated_at");
-      await pool.query("update table_state set updated_at = now() - interval '2 hours' where table_id=$1", [idle.id]);
+      await ageTable(idle.id, 31);
+      // The busy table is old too, but someone had it open a minute ago.
+      await ageTable(t.id, 120, 1);
 
       expect(await one("select table_maintenance()")).toEqual({ aborted_hands: 1, removed_seats: 1, closed_tables: 1 });
       expect(await chipsOf("carol")).toBe(10000);
@@ -596,6 +609,70 @@ describe.skipIf(!ADMIN_URL)("tables, hands and chip settlement (database)", () =
       expect(await one("select status from poker_tables where id=$1", [t.id])).toBe("open");
       expect(await totalChips()).toBe(40000);
       await expect(rpc("alice", "select table_maintenance()")).rejects.toThrow(/permission denied/);
+    });
+
+    it("a table nobody has open for 30 minutes is deleted and its players get their chips back", async () => {
+      await reset();
+      const t = await createTable("alice");
+      for (const n of ["alice", "bob"]) await join(n, t.id);
+      const fresh = await createTable("bob", { name: "Fresh" });
+
+      await ageTable(t.id, 60, 29);
+      expect((await one<Maintenance>("select table_maintenance()")).closed_tables).toBe(0);
+
+      await ageTable(t.id, 60, 31);
+      await ageTable(fresh.id, 10); // created 10 minutes ago, never opened: too young
+      expect((await one<Maintenance>("select table_maintenance()")).closed_tables).toBe(1);
+      expect(await one("select status from poker_tables where id=$1", [t.id])).toBe("closed");
+      expect(await one("select status from poker_tables where id=$1", [fresh.id])).toBe("open");
+      expect(await stackOf("alice")).toBeNull();
+      expect(await stackOf("bob")).toBeNull();
+      expect(await chipsOf("alice")).toBe(10000);
+      expect(await chipsOf("bob")).toBe(10000);
+      expect(await totalChips()).toBe(40000);
+    });
+
+    it("never deletes a table in the middle of a live hand", async () => {
+      await reset();
+      const t = await createTable("alice");
+      for (const n of ["alice", "bob"]) await join(n, t.id);
+      await start(t.id);
+      await ageTable(t.id, 60, 45);
+      expect(await one("select table_maintenance()")).toEqual({ aborted_hands: 0, removed_seats: 0, closed_tables: 0 });
+      expect(await one("select status from poker_tables where id=$1", [t.id])).toBe("open");
+    });
+
+    it("only the host and seated players keep a table alive", async () => {
+      await reset();
+      const t = await createTable("alice");
+      await join("bob", t.id);
+      const seen = () => one("select last_seen_at from private.table_activity where table_id=$1", [t.id]);
+      const stale = async () => {
+        await pool.query(
+          "insert into private.table_activity values ($1, now() - interval '40 minutes') on conflict (table_id) do update set last_seen_at = excluded.last_seen_at",
+          [t.id],
+        );
+        return (await seen()) as Date;
+      };
+
+      let before = await stale();
+      await rpc("carol", "select mark_table_active($1)", [t.id]); // a spectator
+      expect(await seen()).toEqual(before);
+
+      await rpc("bob", "select mark_table_active($1)", [t.id]); // seated
+      expect(((await seen()) as Date).getTime()).toBeGreaterThan(before.getTime());
+
+      before = await stale();
+      await rpc("alice", "select mark_table_active($1)", [t.id]); // host, not seated
+      expect(((await seen()) as Date).getTime()).toBeGreaterThan(before.getTime());
+
+      // Throttled: a second check-in within 30 seconds writes nothing.
+      const first = await seen();
+      await rpc("alice", "select mark_table_active($1)", [t.id]);
+      expect(await seen()).toEqual(first);
+
+      // Nobody can reach the activity record directly.
+      await expect(rpc("alice", "select * from private.table_activity")).rejects.toThrow(/permission denied/);
     });
   });
 

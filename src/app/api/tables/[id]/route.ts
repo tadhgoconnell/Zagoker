@@ -35,8 +35,18 @@ export function GET(request: NextRequest, ctx: RouteContext<"/api/tables/[id]">)
     const seatRows = unwrap(seats) ?? [];
     const stateRow = unwrap(state);
     const mySeat = seatRows.find((s) => s.user_id === user.id) ?? null;
+    // The screen asks for this every few seconds while it is open: that tells
+    // the database the table is in use (host and seated players only), so it
+    // is not deleted for being idle. A failure here must not break the table.
+    const checkIn =
+      mySeat || table.owner_id === user.id
+        ? supabase.rpc("mark_table_active", { p_table_id: tableId }).then(
+            () => undefined,
+            () => undefined,
+          )
+        : null;
     // Only seated players can have cards, so only they need the private view.
-    const mine = mySeat ? await personalHandView(tableId, user.id) : null;
+    const [mine] = await Promise.all([mySeat ? personalHandView(tableId, user.id) : null, checkIn]);
 
     return {
       table,

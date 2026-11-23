@@ -162,7 +162,13 @@ Browser ──POST /api/tables/:id/action {version, action}──> Vercel functi
   at public tables) browsers request the next deal after a pause
   (`PAUSE_AFTER_SHOWDOWN_MS` 6 s, fold ~3 s; server enforces ≥2.5 s).
 - **Maintenance:** `pg_cron` runs `table_maintenance()` every minute: cancels
-  hands idle 3 min, removes players away 15 min, closes empty idle tables.
+  hands idle 3 min, removes players away 15 min, and deletes (closes, everyone
+  cashed out) any table that neither the host nor a seated player has had open
+  for 30 min. The table screen checks in via `mark_table_active` (called from
+  `GET /api/tables/:id`, at most one write per 30 s; `private.table_activity`).
+- **Deleting tables:** the host can delete a table from the table screen
+  ("Delete table") or from **Your tables** in the lobby (lists their open
+  public and private tables). Uses the existing `close_table`.
 - **Rules worth knowing:** one seat per player at a time; buy-in 10–1000 big
   blinds fixed per table; leaving mid-hand folds you and cashes out at hand
   end; host can close any time (cancels the hand, returns bets).
@@ -219,7 +225,8 @@ Respect `prefers-reduced-motion` (globals.css shortens all CSS animations).
 
 ## 6. Database (Supabase)
 
-Migrations, run in order in SQL Editor (owner has run 1–4 and 6; see 13):
+Migrations, run in order in SQL Editor (owner has run 1–4 and 6; see 13; 7
+sent 23 Nov 2026):
 
 1. `20261112000001_accounts_and_chips.sql` profiles, chip ledger, stats, RLS
 2. `20261113000001_tables_and_hands.sql` tables, seats, private hands/cards,
@@ -229,6 +236,8 @@ Migrations, run in order in SQL Editor (owner has run 1–4 and 6; see 13):
 4. `20261115000001_social.sql` chat, daily bonus, leaderboard/profile functions
 5. `20261118000001_hardening.sql` revokes client access to 2 trigger functions
 6. `20261120000001_profile_photos.sql` `avatar_path`, Storage bucket + policies
+7. `20261123000001_table_cleanup.sql` table activity check-in, 30-minute
+   auto-delete in `table_maintenance()` (safe to run twice)
 
 Supabase settings: anonymous sign-ins **on**, confirm email **off**.
 `tests/db/permissions.db.test.ts` pins every client-visible grant to an

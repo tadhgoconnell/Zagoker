@@ -38,7 +38,7 @@ Legend: [x] built and tested · [ ] not started
 - [x] 30-second turn timer enforced by the server; timed-out players sit out until "I'm back"
 - [x] Automatic next hand; host starts the first hand at private tables
 - [x] Presence: disconnected players are marked
-- [x] Scheduled database maintenance (stale hands, long-absent players, idle tables)
+- [x] Scheduled database maintenance (stale hands, long-absent players, tables nobody has open for 30 minutes)
 - [x] 39 live multi-browser checks through the UI (`tests/e2e/table.e2e.cjs`)
 
 ## Stage 6 — Lobby and social (done)
@@ -62,7 +62,7 @@ Legend: [x] built and tested · [ ] not started
 - [x] Seats show each player's last action ("Raise 300", "Check"), full name on hover, turn glow, win pop
 - [x] Bet presets no longer duplicate (e.g. ½ pot equal to min)
 - [x] In-app confirm dialogs replace browser pop-ups; info messages no longer shown in red
-- [x] Host can close the table at any time (the hand in progress is cancelled, bets returned)
+- [x] Host can delete the table at any time, from the table or the lobby (the hand in progress is cancelled, bets returned)
 - [x] Other players see "table not available" when it closes
 - [x] "Your turn" shown in the browser tab title
 - [x] Error page with retry instead of a blank screen

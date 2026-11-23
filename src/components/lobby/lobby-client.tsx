@@ -4,15 +4,16 @@ import { ArrowRight, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { CreateTableForm } from "@/components/lobby/create-table-form";
+import { HostedTables } from "@/components/lobby/hosted-tables";
 import { Badge } from "@/components/ui/badge";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Panel } from "@/components/ui/panel";
 import { apiCall } from "@/lib/game/client";
-import type { LobbyTable } from "@/lib/game/types";
+import type { HostedTable, LobbyTable } from "@/lib/game/types";
 import { createClient } from "@/lib/supabase/client";
 import { formatChips } from "@/lib/utils";
 
-type Lobby = { tables: LobbyTable[]; myTableId: string | null };
+type Lobby = { tables: LobbyTable[]; myTableId: string | null; hostedTables?: HostedTable[] };
 
 export function LobbyClient({ chips }: { chips: number }) {
   const router = useRouter();
@@ -70,6 +71,8 @@ export function LobbyClient({ chips }: { chips: number }) {
           </ButtonLink>
         </Panel>
       )}
+
+      <HostedTables tables={lobby?.hostedTables ?? []} onChange={() => void refresh()} />
 
       <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
         <section aria-labelledby="public-tables">

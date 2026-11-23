@@ -46,6 +46,9 @@ export type LobbyTable = {
   seated: number;
 };
 
+/** A table the viewer hosts, listed in the lobby so they can return to it or delete it. */
+export type HostedTable = LobbyTable & { is_private: boolean; room_code: string };
+
 export type ApiResult<T> =
   | { ok: true; data: T }
   | { ok: false; status: number; code: string; message: string };

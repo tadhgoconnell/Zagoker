@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Copy, DoorOpen, Link2, Lock, MessageSquare, Power, Wifi, WifiOff, X } from "lucide-react";
+import { Check, Copy, DoorOpen, Link2, Lock, MessageSquare, Trash2, Wifi, WifiOff, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -179,11 +179,11 @@ export function TableClient({ tableId, userId }: { tableId: string; userId: stri
 
   const closeTable = async () => {
     const ok = await confirm({
-      title: "Close this table?",
+      title: "Delete this table?",
       body: handRunning
-        ? "The hand in progress is cancelled and every bet is returned. Everyone is cashed out and the table closes."
-        : "Everyone is cashed out and the table closes for good.",
-      confirmLabel: "Close table",
+        ? "The hand in progress is cancelled and every bet is returned. Everyone is cashed out and the table disappears for good."
+        : "Everyone is cashed out and the table disappears for good.",
+      confirmLabel: "Delete table",
       danger: true,
     });
     if (!ok) return;
@@ -327,9 +327,9 @@ export function TableClient({ tableId, userId }: { tableId: string; userId: stri
           {unread && <span className="absolute top-1.5 right-2 size-2 rounded-full bg-accent-400" />}
         </Button>
         {isHost && (
-          <Button variant="ghost" size="sm" disabled={busy} onClick={closeTable} className="px-3" aria-label="Close table">
-            <Power className="size-4" />
-            <span className="hidden xl:inline">Close table</span>
+          <Button variant="ghost" size="sm" disabled={busy} onClick={closeTable} className="px-3" aria-label="Delete table">
+            <Trash2 className="size-4" />
+            <span className="hidden md:inline">Delete table</span>
           </Button>
         )}
         {mySeat !== null ? (

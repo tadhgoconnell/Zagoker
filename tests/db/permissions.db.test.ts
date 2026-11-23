@@ -106,6 +106,7 @@ describe.skipIf(!ADMIN_URL)("database permission audit", () => {
       "authenticated public.get_table_by_code",
       "authenticated public.join_table",
       "authenticated public.leave_table",
+      "authenticated public.mark_table_active",
       "authenticated public.send_chat_message",
       "authenticated public.sit_in",
     ]);
