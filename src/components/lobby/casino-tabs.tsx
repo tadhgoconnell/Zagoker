@@ -5,6 +5,7 @@ import { RouletteWheel } from "@/components/casino/roulette-wheel";
 import { ChipFace } from "@/components/table/chip-token";
 import { Facets } from "@/components/ui/facets";
 import { routes } from "@/config/site";
+import { facetMesh } from "@/lib/lowpoly";
 
 const half =
   "group relative flex min-h-36 overflow-hidden bg-felt-700 outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-inset sm:min-h-52";
@@ -85,5 +86,85 @@ export function CasinoTabs() {
         />
       </Link>
     </nav>
+  );
+}
+
+/** A many-sided oval: the low-poly outline of a poker table. */
+function oval(cx: number, cy: number, rx: number, ry: number, sides = 18) {
+  return Array.from({ length: sides }, (_, i) => {
+    const a = (i / sides) * 2 * Math.PI;
+    return `${(cx + rx * Math.cos(a)).toFixed(1)},${(cy + ry * Math.sin(a)).toFixed(1)}`;
+  }).join(" ");
+}
+
+/** The poker table drawn flat: rail, faceted felt and the betting line. */
+function PokerTableArt() {
+  const felt = facetMesh(300, 170, 8, 5, 31);
+  return (
+    <svg viewBox="0 0 300 170" className="size-full" aria-hidden="true">
+      <polygon points={oval(150, 85, 148, 83)} fill="#0a0c0b" />
+      <polygon points={oval(150, 85, 144, 79)} fill="#262c29" />
+      <clipPath id="lobby-poker-felt">
+        <polygon points={oval(150, 85, 132, 68)} />
+      </clipPath>
+      <g clipPath="url(#lobby-poker-felt)">
+        {felt.map((f, i) => {
+          const fill = f.shade > 0.3 ? "#1a4f38" : f.shade > -0.3 ? "#14412e" : "#103626";
+          return <polygon key={i} points={f.points} fill={fill} stroke={fill} strokeWidth="0.4" />;
+        })}
+      </g>
+      <polygon points={oval(150, 85, 112, 52)} fill="none" stroke="#5ded51" strokeOpacity="0.2" strokeWidth="1" />
+    </svg>
+  );
+}
+
+/**
+ * Full-width tab above the house games: the poker tables below. A table with
+ * the flop comes in from off the left edge, pocket aces and chips from the right.
+ */
+export function PokerTab() {
+  const card = "absolute h-full drop-shadow-[0_4px_8px_rgb(0_0_0/0.45)]";
+  return (
+    <a
+      href="#public-tables"
+      className="group relative flex min-h-32 items-center justify-center overflow-hidden rounded-2xl border border-ink-600 bg-felt-900 outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-inset sm:min-h-44"
+      data-tab="poker"
+    >
+      <Facets seed={23} cols={10} rows={4} strength={0.08} />
+
+      {/* The table and the flop, from off the left edge. */}
+      <div
+        aria-hidden="true"
+        className={`${slide} pointer-events-none absolute top-1/2 left-0 aspect-[300/170] h-[150%] -translate-x-[66%] -translate-y-1/2 group-hover:-translate-x-[61%] lg:-translate-x-[48%] lg:group-hover:-translate-x-[43%]`}
+      >
+        <PokerTableArt />
+        <div className="absolute top-[38%] left-[52%] flex h-[24%] w-[40%] gap-[3%]">
+          <LowPolyCard id="lobby-flop-1" rank="K" suit="s" seed={12} className="h-full shrink-0" />
+          <LowPolyCard id="lobby-flop-2" rank="7" suit="h" seed={13} className="h-full shrink-0" />
+          <LowPolyCard id="lobby-flop-3" rank="A" suit="c" seed={14} className="h-full shrink-0" />
+        </div>
+      </div>
+
+      <div className="relative z-10 flex flex-col items-center gap-1 px-4 py-4 text-center">
+        <span className="font-display text-2xl leading-tight font-extrabold tracking-tight text-cream sm:text-3xl lg:text-4xl">
+          Play poker
+        </span>
+        <span className="hidden text-sm text-cream/70 sm:block">Texas Hold&apos;em · join a table or create your own</span>
+        <ArrowRight className="mt-1 size-5 rotate-90 text-accent-400 transition-transform group-hover:translate-y-1" />
+      </div>
+
+      {/* Pocket aces and a chip, from off the right edge. */}
+      <div
+        aria-hidden="true"
+        className={`${slide} pointer-events-none absolute top-1/2 right-0 h-[96%] w-[30%] translate-x-[62%] -translate-y-[40%] group-hover:translate-x-[54%] sm:w-[22%] lg:translate-x-[34%] lg:group-hover:translate-x-[26%]`}
+      >
+        <LowPolyCard id="lobby-hole-1" rank="A" suit="d" seed={5} className={`${card} top-[4%] left-0 -rotate-[12deg]`} />
+        <LowPolyCard id="lobby-hole-2" rank="A" suit="h" seed={6} className={`${card} top-0 left-[30%] rotate-[8deg]`} />
+      </div>
+      <ChipFace
+        value={1000}
+        className={`${slide} absolute right-[20%] bottom-3 hidden size-11 -rotate-6 group-hover:-translate-x-1 lg:block`}
+      />
+    </a>
   );
 }

@@ -77,7 +77,7 @@ export function LobbyClient({ chips }: { chips: number }) {
       <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
         <section aria-labelledby="public-tables">
           <div className="mb-4 flex items-center justify-between gap-3">
-            <h2 id="public-tables" className="text-lg font-semibold">Public tables</h2>
+            <h2 id="public-tables" className="scroll-mt-24 text-lg font-semibold">Public tables</h2>
             {!creating && (
               <Button size="sm" onClick={() => setCreating(true)}>
                 <Plus className="size-4" /> Create table
