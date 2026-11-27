@@ -33,6 +33,8 @@ export const routes = {
   profile: "/profile",
   lobby: "/lobby",
   practice: "/practice",
+  blackjack: "/blackjack",
+  roulette: "/roulette",
   leaderboard: "/leaderboard",
   handRankings: "/hand-rankings",
   player: (username: string) => `/players/${encodeURIComponent(username)}`,
@@ -41,6 +43,8 @@ export const routes = {
 export const mainNav = [
   { label: "Lobby", href: routes.lobby },
   { label: "Practice", href: routes.practice },
+  { label: "Blackjack", href: routes.blackjack },
+  { label: "Roulette", href: routes.roulette },
   { label: "Leaderboard", href: routes.leaderboard },
   { label: "How it works", href: "/#how-it-works" },
 ] as const;

@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const protectedPrefixes = ["/profile", "/reset-password", "/lobby", "/table", "/join"];
+const protectedPrefixes = ["/profile", "/reset-password", "/lobby", "/table", "/join", "/blackjack", "/roulette"];
 const signedOutOnly = ["/play", "/login", "/register", "/forgot-password"];
 
 /**

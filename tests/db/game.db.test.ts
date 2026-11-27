@@ -20,6 +20,7 @@ import {
   type PlayerAction,
 } from "@/lib/poker";
 import { seededRandomInt } from "@/lib/poker/__tests__/helpers";
+import { blackjackAction, blackjackStatus, rouletteSpin, type ActiveRound, type CasinoStore } from "@/lib/casino/service";
 
 const ADMIN_URL = process.env.TEST_DATABASE_URL;
 const KEY = "test-game-server-key";
@@ -806,5 +807,99 @@ describe.skipIf(!ADMIN_URL)("tables, hands and chip settlement (database)", () =
       expect(drift).toBe(0);
       expect(await one<number>("select count(*)::int from private.hands where status='active'")).toBe(0);
     }, 180_000);
+  });
+  describe("blackjack and roulette (shared balance)", () => {
+    /** The same calls the live server makes (src/lib/casino/db.ts), over pg. */
+    const store: CasinoStore = {
+      balance: async (id) => Number(await one("select chips from profiles where id=$1", [id])),
+      loadBlackjack: async (id) =>
+        (await server("select casino_load($1,$2) as r", [KEY, id]))[0].r as ActiveRound | null,
+      start: async (id, game, stake, state, payout) =>
+        (await server("select casino_start($1,$2,$3,$4,$5,$6) as r", [KEY, id, game, stake, JSON.stringify(state), payout]))[0].r,
+      update: async (round, version, state, extra) =>
+        (await server("select casino_update($1,$2,$3,$4,$5) as r", [KEY, round, version, JSON.stringify(state), extra]))[0].r,
+      settle: async (round, version, state, payout) => {
+        await server("select casino_settle($1,$2,$3,$4,$5)", [KEY, round, version, JSON.stringify(state), payout]);
+      },
+    };
+    const ledgerDrift = () =>
+      one<number>(`select count(*)::int from profiles p
+        where chips <> (select coalesce(sum(amount),0) from chip_transactions c where c.user_id = p.id)`);
+
+    it("hundreds of random blackjack hands and spins: every chip is accounted for", async () => {
+      await reset();
+      await pool.query("delete from private.casino_rounds");
+      const rng = seededRandomInt(99);
+      const me = users.alice;
+      for (let i = 0; i < 150; i++) {
+        let res = await blackjackAction(store, me, { action: "deal", bet: 10 + rng(200) }, rng);
+        while (res.round!.phase === "player") {
+          const actions = res.round!.actions;
+          res = await blackjackAction(store, me, { action: actions[rng(actions.length)], version: res.round!.version } as never, rng);
+        }
+        await rouletteSpin(store, me, { bets: [{ type: "number", n: rng(37), amount: 10 }, { type: "red", amount: 20 }] }, rng);
+      }
+      expect(await one<number>("select count(*)::int from private.casino_rounds where status='active'")).toBe(0);
+      const net = await one<number>("select (sum(payout) - sum(staked))::int from private.casino_rounds");
+      expect(await store.balance(me)).toBe(10000 + net);
+      expect(await ledgerDrift()).toBe(0);
+      // Finished rounds are stored without the rest of the shoe.
+      expect(await one<number>("select max(jsonb_array_length(state->'shoe'))::int from private.casino_rounds where game='blackjack'")).toBe(0);
+    }, 120_000);
+
+    it("the same chips move between poker, blackjack and roulette", async () => {
+      await reset();
+      await pool.query("delete from private.casino_rounds");
+      const t = await createTable("bob", { buyIn: 2000 });
+      await join("bob", t.id);
+      expect(await chipsOf("bob")).toBe(8000);
+      await rouletteSpin(store, users.bob, { bets: [{ type: "red", amount: 5000 }] }, () => 1); // 1 is red
+      expect(await chipsOf("bob")).toBe(13000);
+      await rpc("bob", "select leave_table($1)", [t.id]);
+      expect(await chipsOf("bob")).toBe(15000);
+      expect(await ledgerDrift()).toBe(0);
+    });
+
+    it("an unfinished hand survives and blocks a second deal", async () => {
+      await reset();
+      await pool.query("delete from private.casino_rounds");
+      for (let seed = 1; seed < 100; seed++) {
+        const res = await blackjackAction(store, users.carol, { action: "deal", bet: 100 }, seededRandomInt(seed));
+        if (res.round!.phase !== "player") continue;
+        expect((await blackjackStatus(store, users.carol)).round).toEqual(res.round);
+        await expect(blackjackAction(store, users.carol, { action: "deal", bet: 100 }, seededRandomInt(1))).rejects.toThrow(/Finish the hand/);
+        await expect(store.start(users.carol, "blackjack", 100, {}, null)).rejects.toThrow(/casino_rounds_one_active/);
+        await expect(store.update(res.round ? (await store.loadBlackjack(users.carol))!.id : "", 7, {}, 0)).rejects.toThrow(/stale_version/);
+        return;
+      }
+      throw new Error("never dealt an unfinished hand");
+    });
+
+    it("the database enforces the key, the limits, the balance and the payout cap", async () => {
+      await reset();
+      await pool.query("delete from private.casino_rounds");
+      const start = (key: string, stake: number, payout: number | null, who = users.dave) =>
+        server("select casino_start($1,$2,'roulette',$3,'{}',$4)", [key, who, stake, payout]);
+      await expect(start("wrong", 100, 0)).rejects.toThrow(/forbidden/);
+      await expect(start(KEY, 9, 0)).rejects.toThrow(/invalid_bet/);
+      await expect(start(KEY, 5001, 0)).rejects.toThrow(/invalid_bet/);
+      await expect(start(KEY, 100, 3601)).rejects.toThrow(/casino_rounds_payout_limit/);
+      await pool.query("update profiles set chips = 50 where id=$1", [users.dave]);
+      await expect(start(KEY, 100, 0)).rejects.toThrow(/insufficient chips/);
+      expect(await chipsOf("dave")).toBe(50);
+      expect(await one<number>("select count(*)::int from private.casino_rounds")).toBe(0);
+
+      // Settling twice pays once.
+      await pool.query("update profiles set chips = 10000 where id=$1", [users.dave]);
+      const id = (await server("select casino_start($1,$2,'blackjack',100,'{}',null) as r", [KEY, users.dave]))[0].r;
+      await server("select casino_settle($1,$2,0,'{}',200)", [KEY, id]);
+      await expect(server("select casino_settle($1,$2,1,'{}',200)", [KEY, id])).rejects.toThrow(/no_round/);
+      expect(await chipsOf("dave")).toBe(10100);
+
+      // Players cannot read rounds (the shoe is secret) or call the functions usefully.
+      await expect(rpc("dave", "select * from private.casino_rounds")).rejects.toThrow(/permission denied/);
+      await expect(rpc("dave", "select casino_load('guess', $1)", [users.dave])).rejects.toThrow(/forbidden/);
+      expect(await ledgerDrift()).toBe(0);
+    });
   });
 });

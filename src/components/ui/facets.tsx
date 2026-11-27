@@ -32,7 +32,8 @@ export function Facets({
           key={i}
           points={f.points}
           fill={f.shade >= 0 ? "#ffffff" : "#000000"}
-          fillOpacity={Math.abs(f.shade) * strength}
+          // Rounded: the server and the browser can differ in the last digit.
+          fillOpacity={Number((Math.abs(f.shade) * strength).toFixed(3))}
         />
       ))}
     </svg>

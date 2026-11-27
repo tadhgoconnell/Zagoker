@@ -81,6 +81,10 @@ describe.skipIf(!ADMIN_URL)("database permission audit", () => {
                    order by 1, 2`),
     ).toEqual([
       // Game server functions: useless without the game server key.
+      "anon public.casino_load",
+      "anon public.casino_settle",
+      "anon public.casino_start",
+      "anon public.casino_update",
       "anon public.game_abort_hand",
       "anon public.game_commit",
       "anon public.game_load",
@@ -91,6 +95,10 @@ describe.skipIf(!ADMIN_URL)("database permission audit", () => {
       "anon public.get_player_profile",
       // Player functions: each acts only on the caller.
       "authenticated public.can_view_table",
+      "authenticated public.casino_load",
+      "authenticated public.casino_settle",
+      "authenticated public.casino_start",
+      "authenticated public.casino_update",
       "authenticated public.claim_daily_bonus",
       "authenticated public.close_table",
       "authenticated public.create_table",

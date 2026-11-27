@@ -29,6 +29,9 @@ const known: [pattern: string, code: string, status: number, message: string][] 
   ["chat_rate_limited", "chat_rate_limited", 429, "You are sending messages too quickly. Wait a few seconds."],
   ["invalid_message", "invalid_message", 400, "Messages must be between 1 and 500 characters."],
   ["bonus_not_ready", "bonus_not_ready", 409, "You have already claimed today's bonus."],
+  ["casino_rounds_one_active", "round_in_progress", 409, "Finish the hand you are playing first."],
+  ["invalid_bet", "invalid_bet", 400, "Bets must be between 10 and 5,000 chips."],
+  ["no_round", "no_round", 409, "There is no hand in play. Place a bet to deal."],
   ["violates check constraint", "invalid_settings", 400, "Those table settings are not allowed."],
 ];
 

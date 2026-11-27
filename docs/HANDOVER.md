@@ -199,6 +199,28 @@ seat order; each game deals random, non-repeating personalities from 8 styles
 and pot-odds discipline. Bots only see their own cards. **Practice never
 changes balances or stats** (deliberate: prevents chip farming).
 
+### Blackjack and roulette (solo against the house)
+
+`/blackjack` and `/roulette` (nav, lobby panel; signed-in players incl.
+guests). **Same chip balance as poker**: every bet and payout goes through
+`apply_chip_delta` (ledger kinds `casino_bet`, `casino_payout`). Bets 10 to
+5,000 per hand/spin (`lib/casino/limits.ts`, also enforced in SQL).
+Server-authoritative like poker: `lib/casino/blackjack.ts` and `roulette.ts`
+are pure rules; `lib/casino/service.ts` runs them against a `CasinoStore`
+(live: `db.ts`, the `casino_*` SQL functions with `GAME_SERVER_KEY`; tests:
+`memory-store.ts`); routes `api/casino/blackjack` (GET status, POST
+deal/hit/stand/double/split) and `api/casino/roulette` (POST bets, spin and
+pay in one step). Secure random from `poker/secure-random.ts`. Rounds live in
+`private.casino_rounds` (the shoe is secret; one unfinished blackjack round
+per player, resumed when they come back; finished rounds stored without the
+shoe). Blackjack: 6 decks fresh each hand, S17, dealer peeks, 3:2 rounded
+down, double any two, split to 4 hands, split aces one card, no insurance or
+surrender. Roulette: European single zero; straight numbers and outside bets
+only (no splits/streets/corners yet). UI in `components/casino/`. Shared
+multiplayer tables are a planned later feature (owner's choice).
+Tests: `lib/casino/casino.test.ts`, the casino block in
+`tests/db/game.db.test.ts`, live `tests/e2e/casino.e2e.cjs`.
+
 ### Other features
 
 Table chat (uncensored, plain text, 5 msgs / 10 s, 500 chars), leaderboard
@@ -237,7 +259,14 @@ sent 23 Nov 2026):
 5. `20261118000001_hardening.sql` revokes client access to 2 trigger functions
 6. `20261120000001_profile_photos.sql` `avatar_path`, Storage bucket + policies
 7. `20261123000001_table_cleanup.sql` table activity check-in, 30-minute
-   auto-delete in `table_maintenance()` (safe to run twice)
+   auto-delete in `table_maintenance()` (safe to run twice; run 27 Nov 2026)
+8. `20261127000001_casino.sql` blackjack/roulette rounds, `casino_*`
+   functions, ledger kinds `casino_bet`/`casino_payout` (safe to run twice)
+
+The Supabase SQL editor checks statements with a stricter parser before
+running them: write one role per `grant`/`revoke` (`from anon;` then
+`from authenticated;`), never `from public, anon, authenticated`. Check a
+file with sqlparser-rs (`pip install sqloxide`; `parse_sql(sql, dialect="postgres")`).
 
 Supabase settings: anonymous sign-ins **on**, confirm email **off**.
 `tests/db/permissions.db.test.ts` pins every client-visible grant to an
