@@ -146,18 +146,6 @@ export function LobbyClient({ chips }: { chips: number }) {
             </ButtonLink>
           </Panel>
           <Panel className="p-5 sm:p-6">
-            <h2 className="text-lg font-semibold">Blackjack and roulette</h2>
-            <p className="mt-1 text-sm text-mist">Play the house with the same chips, any time. Bets 10 to 5,000.</p>
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              <ButtonLink href="/blackjack" variant="secondary">
-                Blackjack
-              </ButtonLink>
-              <ButtonLink href="/roulette" variant="secondary">
-                Roulette
-              </ButtonLink>
-            </div>
-          </Panel>
-          <Panel className="p-5 sm:p-6">
             <h2 className="flex items-center gap-2 text-lg font-semibold">
               Join a private table
             </h2>

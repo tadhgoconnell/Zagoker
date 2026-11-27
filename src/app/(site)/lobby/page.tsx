@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { CasinoTabs } from "@/components/lobby/casino-tabs";
 import { LobbyClient } from "@/components/lobby/lobby-client";
 import { DailyBonus } from "@/components/social/daily-bonus";
 import { Container } from "@/components/ui/container";
@@ -11,8 +12,9 @@ export const metadata: Metadata = { title: "Lobby" };
 
 export default function LobbyPage() {
   return (
-    <Container className="py-10 sm:py-14">
-      <h1 className="font-display text-4xl font-extrabold tracking-tight">Lobby</h1>
+    <Container className="py-6 sm:py-10">
+      <CasinoTabs />
+      <h1 className="mt-10 sm:mt-12 font-display text-4xl font-extrabold tracking-tight">Lobby</h1>
       <p className="mt-2 mb-8 text-mist">Join a public table, or create your own and invite friends.</p>
       <Suspense fallback={<div className="h-64 animate-pulse rounded-xl bg-ink-800" aria-busy="true" />}>
         <Lobby />
