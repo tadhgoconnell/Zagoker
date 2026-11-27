@@ -7,8 +7,10 @@ import { Facets } from "@/components/ui/facets";
 import { routes } from "@/config/site";
 import { facetMesh } from "@/lib/lowpoly";
 
-const half =
-  "group relative flex min-h-36 overflow-hidden bg-felt-700 outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-inset sm:min-h-52";
+/** Every tile: lifts a little under the cursor (hover only applies to real cursors, not taps). */
+const tile =
+  "group relative flex overflow-hidden rounded-2xl border border-ink-600 outline-none transition-[translate,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_16px_32px_-14px_rgb(0_0_0/0.9)] focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-inset";
+const half = `${tile} min-h-36 bg-felt-700 sm:min-h-52`;
 /** The artwork slides a little further into view on hover. */
 const slide = "transition-transform duration-500 ease-out";
 
@@ -21,7 +23,7 @@ export function CasinoTabs() {
   return (
     <nav
       aria-label="House games"
-      className="grid grid-cols-2 divide-x divide-ink-950 overflow-hidden rounded-2xl border border-ink-600"
+      className="grid grid-cols-2 gap-3"
     >
       <Link href={routes.roulette} className={half} data-tab="roulette">
         <Facets seed={21} cols={6} rows={4} strength={0.08} />
@@ -128,7 +130,7 @@ export function PokerTab() {
   return (
     <a
       href="#public-tables"
-      className="group relative flex min-h-32 items-center justify-center overflow-hidden rounded-2xl border border-ink-600 bg-felt-900 outline-none focus-visible:ring-2 focus-visible:ring-accent-400 focus-visible:ring-inset sm:min-h-44"
+      className={`${tile} min-h-32 items-center justify-center bg-felt-900 sm:min-h-44`}
       data-tab="poker"
     >
       <Facets seed={23} cols={10} rows={4} strength={0.08} />
