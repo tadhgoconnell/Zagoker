@@ -1,5 +1,17 @@
 @import "tailwindcss";
 
+/* Hover effects whenever any pointer can hover (an iPad with a trackpad or
+   mouse included). Tailwind's default asks the primary pointer, which on an
+   iPad is the finger, so hover never applied there. Touch-only screens still
+   get no hover, so nothing sticks after a tap. */
+@custom-variant hover {
+  @media (any-hover: hover) {
+    &:hover {
+      @slot;
+    }
+  }
+}
+
 /* ------------------------------------------------------------------
    Zagoker design tokens
    Flat, near-black surfaces with a faint green cast, one bright accent

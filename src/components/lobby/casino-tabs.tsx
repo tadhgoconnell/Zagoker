@@ -32,7 +32,10 @@ export function CasinoTabs() {
           aria-hidden="true"
           className={`${slide} pointer-events-none absolute top-1/2 left-0 aspect-square h-[130%] -translate-x-[62%] -translate-y-1/2 group-hover:-translate-x-[56%] lg:h-[150%] lg:-translate-x-[52%] lg:group-hover:-translate-x-[46%]`}
         >
-          <RouletteWheel highlight={null} />
+          {/* Spins while hovered, and unwinds when the cursor leaves. */}
+          <div className="size-full transition-[rotate] duration-[2500ms] ease-out motion-safe:group-hover:rotate-[540deg]">
+            <RouletteWheel highlight={null} />
+          </div>
         </div>
         <ChipFace
           value={100}
