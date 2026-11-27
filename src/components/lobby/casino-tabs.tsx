@@ -120,7 +120,8 @@ function PokerTableArt() {
 
 /**
  * Full-width tab above the house games: the poker tables below. A table with
- * a royal flush comes in from off the left edge, pocket aces and chips from the right.
+ * Q K A of diamonds comes in from off the left edge, and the hand that makes it
+ * a royal flush (10 and J of diamonds) with a chip from the right.
  */
 export function PokerTab() {
   const card = "absolute h-full drop-shadow-[0_4px_8px_rgb(0_0_0/0.45)]";
@@ -132,16 +133,18 @@ export function PokerTab() {
     >
       <Facets seed={23} cols={10} rows={4} strength={0.08} />
 
-      {/* The table with a royal flush, from off the left edge. */}
+      {/* The table with the queen, king and ace of diamonds, from off the left edge. */}
       <div
         aria-hidden="true"
-        className={`${slide} pointer-events-none absolute top-1/2 left-0 aspect-[300/170] h-[150%] -translate-x-[66%] -translate-y-1/2 group-hover:-translate-x-[61%] lg:-translate-x-[48%] lg:group-hover:-translate-x-[43%]`}
+        className={`${slide} pointer-events-none absolute top-1/2 left-0 aspect-[300/170] h-[150%] -translate-x-[60.5%] -translate-y-1/2`}
       >
         <PokerTableArt />
-        {/* A royal flush in spades; the ace end is on the side that shows. */}
-        <div className="absolute top-[38%] left-[38%] flex h-[24%] w-[56%] gap-[2.5%]">
-          {(["10", "J", "Q", "K", "A"] as const).map((rank, i) => (
-            <LowPolyCard key={rank} id={`lobby-royal-${i}`} rank={rank} suit="s" seed={12 + i} className="h-full shrink-0" />
+        {/* Board cards in the last three of five places; the first two are off the edge. */}
+        <div className="absolute top-[38%] left-[34%] flex h-[24%] w-[56%] gap-[2.5%]">
+          <div className="aspect-[60/84] h-full shrink-0" />
+          <div className="aspect-[60/84] h-full shrink-0" />
+          {(["Q", "K", "A"] as const).map((rank, i) => (
+            <LowPolyCard key={rank} id={`lobby-board-${i}`} rank={rank} suit="d" seed={14 + i} className="h-full shrink-0" />
           ))}
         </div>
       </div>
@@ -154,13 +157,13 @@ export function PokerTab() {
         <ArrowRight className="mt-1 size-5 rotate-90 text-accent-400 transition-transform group-hover:translate-y-1" />
       </div>
 
-      {/* Pocket aces and a chip, from off the right edge. */}
+      {/* The 10 and J of diamonds, making the royal flush, from off the right edge. */}
       <div
         aria-hidden="true"
-        className={`${slide} pointer-events-none absolute top-1/2 right-0 h-[96%] w-[30%] translate-x-[62%] -translate-y-[40%] group-hover:translate-x-[54%] sm:w-[22%] lg:translate-x-[34%] lg:group-hover:translate-x-[26%]`}
+        className={`${slide} pointer-events-none absolute top-1/2 right-0 h-[96%] w-[30%] translate-x-[40%] -translate-y-[40%] group-hover:translate-x-[34%] sm:w-[22%] lg:translate-x-[34%] lg:group-hover:translate-x-[26%]`}
       >
-        <LowPolyCard id="lobby-hole-1" rank="A" suit="d" seed={5} className={`${card} top-[4%] left-0 -rotate-[12deg]`} />
-        <LowPolyCard id="lobby-hole-2" rank="A" suit="h" seed={6} className={`${card} top-0 left-[30%] rotate-[8deg]`} />
+        <LowPolyCard id="lobby-hole-1" rank="10" suit="d" seed={5} className={`${card} top-[4%] left-0 -rotate-[12deg]`} />
+        <LowPolyCard id="lobby-hole-2" rank="J" suit="d" seed={6} className={`${card} top-0 left-[30%] rotate-[8deg]`} />
       </div>
       <ChipFace
         value={1000}
