@@ -135,11 +135,11 @@ export function PokerTab() {
       {/* The table with a royal flush, from off the left edge. */}
       <div
         aria-hidden="true"
-        className={`${slide} pointer-events-none absolute top-1/2 left-0 aspect-[300/170] h-[150%] -translate-x-[66%] -translate-y-1/2 group-hover:-translate-x-[61%] lg:-translate-x-[41%] lg:group-hover:-translate-x-[37%]`}
+        className={`${slide} pointer-events-none absolute top-1/2 left-0 aspect-[300/170] h-[150%] -translate-x-[66%] -translate-y-1/2 group-hover:-translate-x-[61%] lg:-translate-x-[48%] lg:group-hover:-translate-x-[43%]`}
       >
         <PokerTableArt />
         {/* A royal flush in spades; the ace end is on the side that shows. */}
-        <div className="absolute top-[38%] left-[42%] flex h-[24%] w-[52%] gap-[1.5%]">
+        <div className="absolute top-[38%] left-[38%] flex h-[24%] w-[56%] gap-[2.5%]">
           {(["10", "J", "Q", "K", "A"] as const).map((rank, i) => (
             <LowPolyCard key={rank} id={`lobby-royal-${i}`} rank={rank} suit="s" seed={12 + i} className="h-full shrink-0" />
           ))}
