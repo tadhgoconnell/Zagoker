@@ -524,8 +524,9 @@ Owner actions not confirmed:
 - [ ] Authentication → URL Configuration: Site URL and Redirect URL
       `https://zagoker.vercel.app/auth/callback` (needed for password reset).
 - [ ] Vercel Functions region near the Supabase region (speed).
-- [ ] Delete the 152 `zagtest_*` test players (count on 20 Nov 2026)
-      (`supabase/maintenance/delete-test-accounts.sql`, preview first).
+- [x] Deleted all 152 `zagtest_*` test players on 27 Nov 2026 (21 real
+      accounts left). Live e2e suites create new ones; clean up with
+      `supabase/maintenance/delete-test-accounts.sql`.
 - [ ] Revoke the sandbox game key: `private.server_keys` row labelled
       `dev sandbox` is valid on production; its key was only in an old
       sandbox's `.env.local`. Delete that row once a new dev key is registered.
